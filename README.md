@@ -28,6 +28,7 @@ Transform PDF documents into structured knowledge graphs with full citation prov
 | `chunk_document` | Token-aware overlapping chunks with heading context for RAG |
 | `render_document_html` | Structured HTML with page anchors, entity annotations, TOC + search |
 | `manage_graph_db` | Load, query, and manage graphs in Neo4j or PostgreSQL (Apache AGE) |
+| `embed_and_store_chunks` | Embed chunks into PostgreSQL pgvector (OpenAI / Voyage / local) |
 
 **Three ways to use:**
 - **MCP Server** — connect to Claude Desktop, Claude Code, or claude.ai
@@ -167,6 +168,7 @@ Download `.skill` files from [GitHub Releases](https://github.com/AiMalim/malimg
 | `pdf-to-chunks` | "chunk document", "split for embeddings", "RAG chunks" |
 | `document-to-html` | "convert PDF to HTML", "render document", "make PDF browsable" |
 | `graph-db-admin` | "load into Neo4j", "Cypher query", "graph statistics" |
+| `chunks-to-pgvector` | "store in pgvector", "embed into PostgreSQL", "semantic search", "RAG with PostgreSQL" |
 
 ---
 

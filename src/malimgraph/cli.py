@@ -252,6 +252,148 @@ def db_stats(target, uri, user, password, graph_name):
         client.close()
 
 
+@cli.group("vector")
+def vector_group():
+    """PostgreSQL pgvector — embed and search document chunks."""
+    pass
+
+
+@vector_group.command("load")
+@click.option("--input", "-i", "input_path", required=True, type=click.Path(exists=True), help="chunks.json from malimgraph chunk.")
+@click.option("--uri", default=None, envvar="PGVECTOR_URI", help="PostgreSQL connection URI.")
+@click.option("--table", default="document_chunks", show_default=True, help="Target table name.")
+@click.option("--provider", default="openai", show_default=True, type=click.Choice(["openai", "voyage", "local"]), help="Embedding provider.")
+@click.option("--model", default=None, help="Embedding model override (uses provider default if omitted).")
+@click.option("--document-id", default=None, help="Document namespace (default: source filename).")
+@click.option("--skip-existing/--no-skip-existing", default=True, show_default=True, help="Skip chunks already in the table.")
+def vector_load(input_path, uri, table, provider, model, document_id, skip_existing):
+    """Embed chunks and store them in PostgreSQL with pgvector."""
+    from malimgraph.core.embedder import EmbedderConfig
+    from malimgraph.core.vector_client import PgVectorClient
+    from malimgraph.schemas.chunks import ChunkCollection
+
+    if not uri:
+        click.echo("ERROR: --uri or PGVECTOR_URI env var required.", err=True)
+        sys.exit(1)
+
+    with open(input_path, "r", encoding="utf-8") as f:
+        collection = ChunkCollection.model_validate(json.load(f))
+
+    config = EmbedderConfig(provider=provider, model=model)
+    click.echo(f"[vector] Provider: {config.provider} / Model: {config.model} (dim={config.dimension})")
+    click.echo(f"[vector] Chunks to process: {collection.metadata.total_chunks}")
+
+    client = PgVectorClient(uri, table_name=table, embedder_config=config)
+    try:
+        result = client.load_chunks(collection, document_id=document_id, skip_existing=skip_existing)
+    finally:
+        client.close()
+
+    click.echo(f"  ✓ Inserted: {result['inserted']}")
+    click.echo(f"  ✓ Updated:  {result['updated']}")
+    click.echo(f"  - Skipped:  {result['skipped']}")
+    click.echo("[vector] Done.")
+
+
+@vector_group.command("search")
+@click.option("--query", "-q", required=True, help="Search query text.")
+@click.option("--uri", default=None, envvar="PGVECTOR_URI")
+@click.option("--table", default="document_chunks", show_default=True)
+@click.option("--provider", default="openai", show_default=True, type=click.Choice(["openai", "voyage", "local"]))
+@click.option("--model", default=None)
+@click.option("--top-k", default=10, show_default=True, type=int, help="Number of results to return.")
+@click.option("--document-id", default=None, help="Limit search to a specific document.")
+@click.option("--min-score", default=0.0, show_default=True, type=float, help="Minimum cosine similarity score.")
+def vector_search(query, uri, table, provider, model, top_k, document_id, min_score):
+    """Semantic search across embedded chunks."""
+    from malimgraph.core.embedder import EmbedderConfig
+    from malimgraph.core.vector_client import PgVectorClient
+
+    if not uri:
+        click.echo("ERROR: --uri or PGVECTOR_URI env var required.", err=True)
+        sys.exit(1)
+
+    config = EmbedderConfig(provider=provider, model=model)
+    client = PgVectorClient(uri, table_name=table, embedder_config=config)
+    try:
+        results = client.similarity_search(query, top_k=top_k, document_id=document_id, min_score=min_score)
+    finally:
+        client.close()
+
+    click.echo(json.dumps(results, indent=2, default=str))
+    click.echo(f"\n{len(results)} result(s) returned.", err=True)
+
+
+@vector_group.command("stats")
+@click.option("--uri", default=None, envvar="PGVECTOR_URI")
+@click.option("--table", default="document_chunks", show_default=True)
+@click.option("--provider", default="openai", show_default=True, type=click.Choice(["openai", "voyage", "local"]))
+def vector_stats(uri, table, provider):
+    """Show pgvector table statistics."""
+    from malimgraph.core.embedder import EmbedderConfig
+    from malimgraph.core.vector_client import PgVectorClient
+
+    if not uri:
+        click.echo("ERROR: --uri or PGVECTOR_URI env var required.", err=True)
+        sys.exit(1)
+
+    config = EmbedderConfig(provider=provider)
+    client = PgVectorClient(uri, table_name=table, embedder_config=config)
+    try:
+        stats = client.stats()
+    finally:
+        client.close()
+
+    click.echo(json.dumps(stats, indent=2))
+
+
+@vector_group.command("list")
+@click.option("--uri", default=None, envvar="PGVECTOR_URI")
+@click.option("--table", default="document_chunks", show_default=True)
+@click.option("--provider", default="openai", show_default=True, type=click.Choice(["openai", "voyage", "local"]))
+def vector_list(uri, table, provider):
+    """List all indexed documents."""
+    from malimgraph.core.embedder import EmbedderConfig
+    from malimgraph.core.vector_client import PgVectorClient
+
+    if not uri:
+        click.echo("ERROR: --uri or PGVECTOR_URI env var required.", err=True)
+        sys.exit(1)
+
+    config = EmbedderConfig(provider=provider)
+    client = PgVectorClient(uri, table_name=table, embedder_config=config)
+    try:
+        docs = client.list_documents()
+    finally:
+        client.close()
+
+    click.echo(json.dumps(docs, indent=2, default=str))
+
+
+@vector_group.command("delete")
+@click.option("--document-id", required=True, help="Document ID to remove from the table.")
+@click.option("--uri", default=None, envvar="PGVECTOR_URI")
+@click.option("--table", default="document_chunks", show_default=True)
+@click.option("--provider", default="openai", show_default=True, type=click.Choice(["openai", "voyage", "local"]))
+def vector_delete(document_id, uri, table, provider):
+    """Delete all chunks for a document from the vector table."""
+    from malimgraph.core.embedder import EmbedderConfig
+    from malimgraph.core.vector_client import PgVectorClient
+
+    if not uri:
+        click.echo("ERROR: --uri or PGVECTOR_URI env var required.", err=True)
+        sys.exit(1)
+
+    config = EmbedderConfig(provider=provider)
+    client = PgVectorClient(uri, table_name=table, embedder_config=config)
+    try:
+        deleted = client.delete_document(document_id)
+    finally:
+        client.close()
+
+    click.echo(f"  ✓ Deleted {deleted} chunks for document '{document_id}'.")
+
+
 @cli.command("serve")
 @click.option("--transport", default="stdio", show_default=True, type=click.Choice(["stdio", "http"]))
 @click.option("--port", default=8080, show_default=True, type=int)

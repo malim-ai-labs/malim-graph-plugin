@@ -50,6 +50,10 @@ jobs:
         run: |
           cd skills/graph-db-admin
           zip -r ../../dist/graph-db-admin.skill SKILL.md scripts/
+      - name: Package skill — chunks-to-pgvector
+        run: |
+          cd skills/chunks-to-pgvector
+          zip -r ../../dist/chunks-to-pgvector.skill SKILL.md scripts/
       - name: Upload skills to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -58,5 +62,6 @@ jobs:
             dist/pdf-to-chunks.skill
             dist/document-to-html.skill
             dist/graph-db-admin.skill
+            dist/chunks-to-pgvector.skill
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -251,12 +251,88 @@ async def manage_graph_db(
     return {"error": "Unknown error"}
 
 
+@mcp.tool()
+async def embed_and_store_chunks(
+    chunks_path: str,
+    connection_uri: Optional[str] = None,
+    table_name: str = "document_chunks",
+    embedding_provider: str = "openai",
+    embedding_model: Optional[str] = None,
+    document_id: Optional[str] = None,
+    skip_existing: bool = True,
+) -> dict:
+    """
+    Generate embeddings for chunks from a chunks.json file and store them
+    in a PostgreSQL database with the pgvector extension. Enables semantic
+    search over document chunks via cosine similarity (HNSW index).
+
+    Supports three embedding providers:
+    - openai: text-embedding-3-small (1536-d), text-embedding-3-large (3072-d)
+    - voyage: voyage-3-large (1024-d), voyage-3-lite (512-d)
+    - local: any sentence-transformers model (runs on CPU, no API key needed)
+
+    Args:
+        chunks_path: Path to chunks.json produced by chunk_document.
+        connection_uri: PostgreSQL URI (or use PGVECTOR_URI env var).
+        table_name: Target table name (default: document_chunks).
+        embedding_provider: openai | voyage | local.
+        embedding_model: Model name override (uses provider default if omitted).
+        document_id: Document identifier for namespacing (default: source filename).
+        skip_existing: Skip chunks already in the table (default: True).
+    """
+    from malimgraph.core.embedder import EmbedderConfig
+    from malimgraph.core.vector_client import PgVectorClient
+    from malimgraph.schemas.chunks import ChunkCollection
+
+    if not os.path.exists(chunks_path):
+        return {"error": f"chunks.json not found: {chunks_path}"}
+
+    uri = connection_uri or os.environ.get("PGVECTOR_URI", "")
+    if not uri:
+        return {"error": "connection_uri or PGVECTOR_URI environment variable required."}
+
+    import json as _json
+    with open(chunks_path, "r", encoding="utf-8") as f:
+        collection = ChunkCollection.model_validate(_json.load(f))
+
+    config = EmbedderConfig(
+        provider=embedding_provider,
+        model=embedding_model,
+    )
+
+    try:
+        client = PgVectorClient(uri, table_name=table_name, embedder_config=config)
+    except Exception as e:
+        return {"error": f"Database connection failed: {e}"}
+
+    try:
+        result = await _run_in_executor(client.load_chunks, collection, document_id, skip_existing)
+    finally:
+        client.close()
+
+    return {
+        "status": "success",
+        "table": table_name,
+        "source_file": collection.metadata.source_file,
+        "total_chunks": collection.metadata.total_chunks,
+        "embedding_model": config.model,
+        "embedding_dimension": config.dimension,
+        **result,
+    }
+
+
 async def _run_llm(doc, entity_types):
     """Run LLM extraction in thread pool to avoid blocking the event loop."""
     import asyncio
     from malimgraph.core.llm_extractor import extract_by_llm
     loop = asyncio.get_event_loop()
     return await loop.run_in_executor(None, extract_by_llm, doc, entity_types)
+
+
+async def _run_in_executor(fn, *args):
+    import asyncio
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, fn, *args)
 
 
 def _chunks_to_markdown(collection) -> str:

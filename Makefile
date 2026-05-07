@@ -30,6 +30,7 @@ skills:
 	cd skills/pdf-to-chunks && zip -r ../../dist/pdf-to-chunks.skill SKILL.md scripts/
 	cd skills/document-to-html && zip -r ../../dist/document-to-html.skill SKILL.md scripts/
 	cd skills/graph-db-admin && zip -r ../../dist/graph-db-admin.skill SKILL.md scripts/
+	cd skills/chunks-to-pgvector && zip -r ../../dist/chunks-to-pgvector.skill SKILL.md scripts/
 	@echo "Skills packaged in dist/"
 
 clean:
