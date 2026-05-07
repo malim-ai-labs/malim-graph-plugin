@@ -570,6 +570,12 @@ async def embed_and_store_chunks(
     }
 
 
+@mcp.resource("health://status")
+async def health() -> str:
+    """Health check endpoint for Railway / Render deployment."""
+    return f"ok — MalimGraph {mcp.version}"
+
+
 @mcp.tool()
 async def list_workflows() -> dict:
     """
@@ -655,7 +661,33 @@ async def list_workflows() -> dict:
 
 
 def run():
-    mcp.run(transport="stdio")
+    import argparse
+
+    parser = argparse.ArgumentParser(description="MalimGraph MCP Plugin Server")
+    parser.add_argument(
+        "--transport",
+        default=os.environ.get("MALIMGRAPH_TRANSPORT", "stdio"),
+        choices=["stdio", "http"],
+        help="Transport mode: stdio (local) or http (hosted)",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=int(os.environ.get("PORT", 8080)),
+        help="Port for HTTP transport (default: $PORT or 8080)",
+    )
+    parser.add_argument(
+        "--host",
+        default=os.environ.get("HOST", "0.0.0.0"),
+        help="Host for HTTP transport (default: 0.0.0.0)",
+    )
+    args = parser.parse_args()
+
+    if args.transport == "http":
+        print(f"MalimGraph MCP server starting on http://{args.host}:{args.port}")
+        mcp.run(transport="streamable-http", host=args.host, port=args.port)
+    else:
+        mcp.run(transport="stdio")
 
 
 if __name__ == "__main__":

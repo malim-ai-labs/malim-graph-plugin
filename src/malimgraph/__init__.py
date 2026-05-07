@@ -1,6 +1,6 @@
 """MalimGraph — Transform PDF documents into structured knowledge graphs."""
 
-__version__ = "0.1.4"
+__version__ = "0.1.5"
 __author__ = "Malim AI Labs"
 __email__ = "hello@malim.my"
 
