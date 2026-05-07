@@ -2,7 +2,7 @@ services:
   - type: web
     name: malimgraph
     runtime: python
-    buildCommand: pip install malimgraph
+    buildCommand: pip install -e .
     startCommand: malimgraph-plugin --transport http --port $PORT
     healthCheckPath: /health
     envVars:
@@ -10,11 +10,11 @@ services:
         value: http
       - key: PYTHONUNBUFFERED
         value: "1"
-      # Add your optional env vars in the Render dashboard:
-      # OPENAI_API_KEY      — for OpenAI embeddings
-      # VOYAGE_API_KEY      — for Voyage AI embeddings
-      # PGVECTOR_URI        — for pgvector storage
-      # NEO4J_URI           — for Neo4j
+      # Add these in the Render dashboard as needed:
+      # OPENAI_API_KEY      — OpenAI embeddings
+      # VOYAGE_API_KEY      — Voyage AI embeddings
+      # PGVECTOR_URI        — pgvector storage
+      # NEO4J_URI           — Neo4j
       # NEO4J_USER
       # NEO4J_PASSWORD
-      # AGE_CONNECTION_URI  — for Apache AGE
+      # AGE_CONNECTION_URI  — Apache AGE

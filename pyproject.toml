@@ -1,6 +1,6 @@
 [project]
 name = "malimgraph"
-version = "0.1.5"
+version = "0.1.6"
 description = "Transform PDF documents into structured knowledge graphs with citation provenance"
 readme = "README.md"
 license = "MIT"
@@ -55,6 +55,13 @@ Issues = "https://github.com/AiMalim/malimgraph/issues"
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.hatch.build]
+include = [
+    "src/malimgraph/**",
+    "README.md",
+    "LICENSE",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/malimgraph"]
