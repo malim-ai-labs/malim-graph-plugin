@@ -68,13 +68,15 @@ async def read_pdf(pdf_path: str) -> dict:
 
     pages_out = []
     for page in doc.pages:
-        pages_out.append({
-            "page": page.page_number,
-            "headings": page.headings,
-            "text": page.text,
-            "has_table": page.has_table,
-            "is_scanned": page.is_scanned,
-        })
+        pages_out.append(
+            {
+                "page": page.page_number,
+                "headings": page.headings,
+                "text": page.text,
+                "has_table": page.has_table,
+                "is_scanned": page.is_scanned,
+            }
+        )
 
     return {
         "source_file": os.path.basename(doc.source_file),
@@ -172,7 +174,9 @@ async def save_knowledge_graph(
         # Respect pre-existing IDs (from rule extractor) or generate stable ones
         eid = e_raw.get("id") or entity_id(etype, label)
         conf_str = e_raw.get("confidence", "medium")
-        confidence = Confidence(conf_str) if conf_str in Confidence._value2member_map_ else Confidence.MEDIUM
+        confidence = (
+            Confidence(conf_str) if conf_str in Confidence._value2member_map_ else Confidence.MEDIUM
+        )
         pages = e_raw.get("source_pages", [])
         source_text = e_raw.get("source_text", "")[:500]
 
@@ -194,7 +198,9 @@ async def save_knowledge_graph(
                     chunk_id="claude",
                     extraction_method=ExtractionMethod.LLM,
                 )
-            ] if source_text else [],
+            ]
+            if source_text
+            else [],
         )
 
     # Build Relationship objects
@@ -216,7 +222,9 @@ async def save_knowledge_graph(
         pages = r_raw.get("source_pages", [])
         source_text = r_raw.get("source_text", "")[:500]
         conf_str = r_raw.get("confidence", "medium")
-        confidence = Confidence(conf_str) if conf_str in Confidence._value2member_map_ else Confidence.MEDIUM
+        confidence = (
+            Confidence(conf_str) if conf_str in Confidence._value2member_map_ else Confidence.MEDIUM
+        )
 
         # Auto-create stub entities if Claude referenced labels not already in the map
         for eid, lbl, typ in [(src_id, src_label, src_type), (tgt_id, tgt_label, tgt_type)]:
@@ -232,25 +240,29 @@ async def save_knowledge_graph(
                     source_chunk_ids=["claude"],
                 )
 
-        rel_list.append(Relationship(
-            id=rid,
-            source=src_id,
-            target=tgt_id,
-            type=rel_type,
-            extraction_method=ExtractionMethod.LLM,
-            confidence=confidence,
-            source_pages=pages,
-            source_text=source_text,
-            source_chunk_id="claude",
-            citations=[
-                Citation(
-                    text=source_text,
-                    pages=pages,
-                    chunk_id="claude",
-                    extraction_method=ExtractionMethod.LLM,
-                )
-            ] if source_text else [],
-        ))
+        rel_list.append(
+            Relationship(
+                id=rid,
+                source=src_id,
+                target=tgt_id,
+                type=rel_type,
+                extraction_method=ExtractionMethod.LLM,
+                confidence=confidence,
+                source_pages=pages,
+                source_text=source_text,
+                source_chunk_id="claude",
+                citations=[
+                    Citation(
+                        text=source_text,
+                        pages=pages,
+                        chunk_id="claude",
+                        extraction_method=ExtractionMethod.LLM,
+                    )
+                ]
+                if source_text
+                else [],
+            )
+        )
 
     entity_list = list(entity_map.values())
     entity_types = sorted({e.type for e in entity_list})
@@ -334,7 +346,12 @@ async def chunk_document(
         out_path = os.path.join(output_dir, "chunks.json")
         with open(out_path, "w", encoding="utf-8") as f:
             json.dump(collection.model_dump(), f, indent=2, ensure_ascii=False)
-        return {"status": "success", "file": out_path, "total_chunks": collection.metadata.total_chunks, "total_tokens": collection.metadata.total_tokens}
+        return {
+            "status": "success",
+            "file": out_path,
+            "total_chunks": collection.metadata.total_chunks,
+            "total_tokens": collection.metadata.total_tokens,
+        }
 
     if output_format == "md":
         lines = [f"# Chunks — {collection.metadata.source_file}\n"]
@@ -347,7 +364,11 @@ async def chunk_document(
         out_path = os.path.join(output_dir, "chunks.md")
         with open(out_path, "w", encoding="utf-8") as f:
             f.write("\n".join(lines))
-        return {"status": "success", "file": out_path, "total_chunks": collection.metadata.total_chunks}
+        return {
+            "status": "success",
+            "file": out_path,
+            "total_chunks": collection.metadata.total_chunks,
+        }
 
     # txt — one file per chunk
     for chunk in collection.chunks:
@@ -355,7 +376,11 @@ async def chunk_document(
         frontmatter = f"---\nchunk_id: {chunk.chunk_id}\npages: {chunk.source_pages}\ntokens: {chunk.token_count}\nheading_context: {chunk.heading_context}\n---\n\n"
         with open(fname, "w", encoding="utf-8") as f:
             f.write(frontmatter + chunk.text)
-    return {"status": "success", "directory": output_dir, "total_chunks": collection.metadata.total_chunks}
+    return {
+        "status": "success",
+        "directory": output_dir,
+        "total_chunks": collection.metadata.total_chunks,
+    }
 
 
 @mcp.tool()
@@ -390,12 +415,19 @@ async def render_document_html(
         with open(knowledge_graph_path, "r", encoding="utf-8") as f:
             kg = KnowledgeGraph.model_validate(json.load(f))
 
-    html_content = _render(doc, knowledge_graph=kg, include_toc=include_toc, include_search=include_search)
+    html_content = _render(
+        doc, knowledge_graph=kg, include_toc=include_toc, include_search=include_search
+    )
     os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(html_content)
 
-    return {"status": "success", "file": output_path, "page_count": doc.total_pages, "size_bytes": len(html_content)}
+    return {
+        "status": "success",
+        "file": output_path,
+        "page_count": doc.total_pages,
+        "size_bytes": len(html_content),
+    }
 
 
 @mcp.tool()
@@ -519,8 +551,11 @@ async def embed_and_store_chunks(
 
     try:
         import asyncio
+
         loop = asyncio.get_event_loop()
-        result = await loop.run_in_executor(None, client.load_chunks, collection, document_id, skip_existing)
+        result = await loop.run_in_executor(
+            None, client.load_chunks, collection, document_id, skip_existing
+        )
     finally:
         client.close()
 
@@ -550,9 +585,23 @@ async def list_workflows() -> dict:
             {
                 "name": "pdf-to-graph",
                 "description": "Extract entities and relationships from a PDF into a knowledge graph.",
-                "triggers": ["knowledge graph", "extract entities", "PDF to graph", "PDF to Cypher", "PDF to Neo4j"],
-                "steps": ["read_pdf", "(you extract entities+relationships)", "save_knowledge_graph"],
-                "outputs": ["knowledge_graph.json", "knowledge_graph.cypher", "knowledge_graph.sql"],
+                "triggers": [
+                    "knowledge graph",
+                    "extract entities",
+                    "PDF to graph",
+                    "PDF to Cypher",
+                    "PDF to Neo4j",
+                ],
+                "steps": [
+                    "read_pdf",
+                    "(you extract entities+relationships)",
+                    "save_knowledge_graph",
+                ],
+                "outputs": [
+                    "knowledge_graph.json",
+                    "knowledge_graph.cypher",
+                    "knowledge_graph.sql",
+                ],
             },
             {
                 "name": "pdf-to-rag",
@@ -574,12 +623,23 @@ async def list_workflows() -> dict:
                     "embed_and_store_chunks",
                     "render_document_html",
                 ],
-                "outputs": ["knowledge_graph.json", ".cypher", ".sql", "chunks.json", "document.html"],
+                "outputs": [
+                    "knowledge_graph.json",
+                    ".cypher",
+                    ".sql",
+                    "chunks.json",
+                    "document.html",
+                ],
             },
             {
                 "name": "graph-query",
                 "description": "Load, query, and manage graphs in Neo4j or Apache AGE.",
-                "triggers": ["load into Neo4j", "Cypher query", "graph database", "graph statistics"],
+                "triggers": [
+                    "load into Neo4j",
+                    "Cypher query",
+                    "graph database",
+                    "graph statistics",
+                ],
                 "steps": ["manage_graph_db"],
                 "actions": ["load", "query", "stats", "drop", "list_graphs"],
             },

@@ -213,8 +213,6 @@ Built by **[Malim AI Labs](https://ailabs.malim.my)** — AI-powered knowledge i
 
 Malim AI Labs Social Enterprise (003827047-U) · Kuala Lumpur, Malaysia
 
-Inspired by [ruflo](https://github.com/ruvnet/ruflo) agentic plugin architecture.
-
 ---
 
 ## License
