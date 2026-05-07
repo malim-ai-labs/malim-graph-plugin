@@ -58,7 +58,7 @@ PATTERNS: list[tuple[str, str, re.Pattern]] = [
     (
         "percentage",
         "Percentage",
-        re.compile(r"\b\d+(?:\.\d+)?%\b"),
+        re.compile(r"\b\d+(?:\.\d+)?%"),
     ),
     (
         "legal_act",

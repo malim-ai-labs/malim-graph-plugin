@@ -63,7 +63,7 @@ def test_render_includes_search():
 def test_render_no_search():
     doc = _make_doc(["Content."])
     html = render_document_html(doc, include_search=False)
-    assert "search-input" not in html
+    assert 'id="search-bar"' not in html
 
 
 def test_render_entity_annotations(sample_kg):
@@ -81,6 +81,7 @@ def test_entity_page_map_built_correctly(sample_kg):
 
 def test_render_escapes_html_special_chars():
     doc = _make_doc(['Text with <script>alert("xss")</script> injection.'])
-    html = render_document_html(doc)
+    # Disable search so the page has no legitimate <script> tag
+    html = render_document_html(doc, include_search=False)
     assert "<script>" not in html
-    assert "&lt;script&gt;" in html or "alert" not in html
+    assert "&lt;script&gt;" in html

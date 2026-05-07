@@ -20,7 +20,17 @@ def test_extract_page_basic():
             {
                 "type": 0,
                 "bbox": [0, 0, 100, 20],
-                "lines": [{"spans": [{"text": "Hello World", "size": 12, "flags": 0}]}],
+                "lines": [
+                    {
+                        "spans": [
+                            {
+                                "text": "This is a sufficiently long paragraph to avoid scanned detection.",
+                                "size": 12,
+                                "flags": 0,
+                            }
+                        ]
+                    }
+                ],
             }
         ]
     }
@@ -28,7 +38,7 @@ def test_extract_page_basic():
     result = _extract_page(mock_page, 1)
 
     assert result.page_number == 1
-    assert "Hello World" in result.text
+    assert "sufficiently long paragraph" in result.text
     assert result.is_scanned is False
 
 
