@@ -8,7 +8,7 @@ from typing import Optional
 
 from mcp.server.fastmcp import FastMCP
 
-mcp = FastMCP("MalimGraph", version="0.1.0")
+mcp = FastMCP("MalimGraph")
 
 
 @mcp.tool()

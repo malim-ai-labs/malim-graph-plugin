@@ -21,7 +21,6 @@ from mcp.server.fastmcp import FastMCP
 
 mcp = FastMCP(
     "MalimGraph",
-    version="0.1.2",
     instructions=(
         "MalimGraph converts PDF documents into structured knowledge graphs. "
         "Read CLAUDE.md in the project root for full workflow documentation. "
