@@ -13,6 +13,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://modelcontextprotocol.io)
+[![CI](https://github.com/malim-ai-labs/malim-graph-plugin/actions/workflows/ci.yml/badge.svg)](https://github.com/malim-ai-labs/malim-graph-plugin/actions/workflows/ci.yml)
 
 **From documents to knowledge graphs.**
 
@@ -32,8 +33,8 @@ Transform PDF documents into structured knowledge graphs with full citation prov
 
 **Three ways to use:**
 - **MCP Server** — connect to Claude Desktop, Claude Code, or claude.ai
-- **CLI** — `malimgraph extract`, `chunk`, `render`, `db`
-- **Claude Skills** — installable `.skill` packages for claude.ai
+- **CLI** — `malimgraph extract`, `chunk`, `render`, `db`, `vector`
+- **Claude Skills** — 5 installable `.skill` packages for claude.ai
 
 ---
 
@@ -49,7 +50,12 @@ malimgraph extract --input report.pdf --output ./output/ --format all
 # Chunk for RAG
 malimgraph chunk --input report.pdf --output ./chunks/
 
-# Render as HTML
+# Embed chunks into pgvector
+export PGVECTOR_URI="postgresql://user:pass@localhost:5432/mydb"
+export OPENAI_API_KEY=sk-...
+malimgraph vector load --input ./chunks/chunks.json
+
+# Render as browsable HTML
 malimgraph render --input report.pdf --output document.html
 ```
 
@@ -72,15 +78,15 @@ rule_extractor.py              llm_extractor.py          chunker.py
  │                              │  source_text required)  │
  └──────────────┬───────────────┘                         │
                 ▼                                          ▼
-          graph_builder.py                           chunks.json
-           │ (merge + dedup:
-           │  hybrid method,
-           │  citation accumulation,
-           │  stable IDs)
-           ▼
-     knowledge_graph.json
-           │
-     ┌─────┴──────┐
+          graph_builder.py                          embedder.py
+           │ (merge + dedup:                        │ (OpenAI / Voyage /
+           │  hybrid method,                        │  local sentence-
+           │  citation accumulation,                │  transformers)
+           │  stable IDs)                           │
+           ▼                                        ▼
+     knowledge_graph.json                    vector_client.py
+           │                                 (pgvector: HNSW index,
+     ┌─────┴──────┐                           cosine similarity search)
      ▼             ▼
  cypher.py     age_sql.py
  (.cypher)      (.sql)
@@ -137,7 +143,20 @@ malimgraph chunk \
   --overlap 64 \
   --format json
 
-# Render as HTML
+# Embed chunks into PostgreSQL pgvector
+malimgraph vector load \
+  --input ./chunks/chunks.json \
+  --uri "postgresql://user:pass@localhost:5432/mydb" \
+  --provider openai \
+  --table document_chunks
+
+# Semantic search over embedded chunks
+malimgraph vector search \
+  --query "What are the financial risks?" \
+  --uri "postgresql://user:pass@localhost:5432/mydb" \
+  --top-k 5
+
+# Render as browsable HTML
 malimgraph render \
   --input report.pdf \
   --output document.html \
@@ -151,7 +170,7 @@ malimgraph db load \
   --user neo4j \
   --password secret
 
-# Query
+# Query the graph
 malimgraph db query \
   --target neo4j \
   --uri bolt://localhost:7687 \
@@ -160,7 +179,7 @@ malimgraph db query \
 
 ### Claude Skills
 
-Download `.skill` files from [GitHub Releases](https://github.com/AiMalim/malimgraph/releases) and install in claude.ai → Settings → Skills.
+Download `.skill` files from [GitHub Releases](https://github.com/malim-ai-labs/malim-graph-plugin/releases) and install in claude.ai → Settings → Skills.
 
 | Skill | Trigger phrases |
 |-------|----------------|
@@ -169,6 +188,46 @@ Download `.skill` files from [GitHub Releases](https://github.com/AiMalim/malimg
 | `document-to-html` | "convert PDF to HTML", "render document", "make PDF browsable" |
 | `graph-db-admin` | "load into Neo4j", "Cypher query", "graph statistics" |
 | `chunks-to-pgvector` | "store in pgvector", "embed into PostgreSQL", "semantic search", "RAG with PostgreSQL" |
+
+---
+
+## Installation
+
+```bash
+# Core (knowledge graph + chunking + HTML)
+pip install malimgraph
+
+# With Neo4j support
+pip install "malimgraph[neo4j]"
+
+# With Apache AGE support
+pip install "malimgraph[age]"
+
+# With pgvector + OpenAI embeddings
+pip install "malimgraph[pgvector,openai]"
+
+# With pgvector + Voyage AI embeddings
+pip install "malimgraph[pgvector,voyage]"
+
+# With local embeddings (no API key needed)
+pip install "malimgraph[pgvector,local]"
+
+# Everything
+pip install "malimgraph[all]"
+```
+
+### Environment Variables
+
+```bash
+ANTHROPIC_API_KEY=sk-ant-...      # Required for LLM extraction
+OPENAI_API_KEY=sk-...             # Required for OpenAI embeddings
+VOYAGE_API_KEY=pa-...             # Required for Voyage AI embeddings
+PGVECTOR_URI=postgresql://...     # PostgreSQL connection for pgvector
+NEO4J_URI=bolt://localhost:7687   # Neo4j connection
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=yourpassword
+AGE_CONNECTION_URI=host=...       # Apache AGE connection
+```
 
 ---
 
@@ -191,6 +250,34 @@ Every entity and relationship carries full citation provenance:
 
 ---
 
+## pgvector — Semantic Search Schema
+
+Chunks are stored with embeddings in PostgreSQL, enabling semantic search:
+
+```sql
+-- Find chunks most similar to a query
+SELECT chunk_text, source_file, page_numbers, heading_context,
+       1 - (embedding <=> '[...]'::vector) AS score
+FROM document_chunks
+ORDER BY embedding <=> '[...]'::vector
+LIMIT 10;
+
+-- Filter by document
+SELECT * FROM document_chunks
+WHERE document_id = 'annual_report_2024'
+ORDER BY embedding <=> '[...]'::vector LIMIT 5;
+```
+
+**Supported embedding providers:**
+
+| Provider | Default model | Dimension | API key |
+|----------|--------------|-----------|---------|
+| `openai` | `text-embedding-3-small` | 1536-d | `OPENAI_API_KEY` |
+| `voyage` | `voyage-3-large` | 1024-d | `VOYAGE_API_KEY` |
+| `local` | `all-MiniLM-L6-v2` | 384-d | none (CPU) |
+
+---
+
 ## Database Setup
 
 ### Neo4j
@@ -202,6 +289,11 @@ docker run -p 7474:7474 -p 7687:7687 \
 ### Apache AGE (PostgreSQL)
 ```bash
 docker run -p 5432:5432 -e POSTGRES_PASSWORD=secret apache/age:latest
+```
+
+### pgvector (PostgreSQL)
+```bash
+docker run -p 5432:5432 -e POSTGRES_PASSWORD=secret pgvector/pgvector:pg17
 ```
 
 See [docs/database-setup.md](docs/database-setup.md) for full guides.

@@ -181,7 +181,11 @@ def _merge_llm_result(
             extraction_method=ExtractionMethod.LLM,
         )
         confidence_str = e_raw.get("confidence", "medium")
-        confidence = Confidence(confidence_str) if confidence_str in Confidence._value2member_map_ else Confidence.MEDIUM
+        confidence = (
+            Confidence(confidence_str)
+            if confidence_str in Confidence._value2member_map_
+            else Confidence.MEDIUM
+        )
 
         if eid in entity_map:
             existing = entity_map[eid]
@@ -242,7 +246,11 @@ def _merge_llm_result(
             extraction_method=ExtractionMethod.LLM,
         )
         confidence_str = r_raw.get("confidence", "medium")
-        confidence = Confidence(confidence_str) if confidence_str in Confidence._value2member_map_ else Confidence.MEDIUM
+        confidence = (
+            Confidence(confidence_str)
+            if confidence_str in Confidence._value2member_map_
+            else Confidence.MEDIUM
+        )
 
         if rid in relationship_map:
             existing_r = relationship_map[rid]

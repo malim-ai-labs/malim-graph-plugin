@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import json
 import os
-from typing import Any, Optional
+from typing import Optional
 
-from malimgraph.schemas.chunks import Chunk, ChunkCollection
 from malimgraph.core.embedder import EmbedderConfig, embed_texts
+from malimgraph.schemas.chunks import ChunkCollection
 
 
 class PgVectorClient:
@@ -39,6 +39,7 @@ class PgVectorClient:
         try:
             import psycopg2
             import psycopg2.extras
+
             self._psycopg2 = psycopg2
         except ImportError:
             raise ImportError("Install psycopg2: pip install psycopg2-binary")
@@ -79,8 +80,12 @@ class PgVectorClient:
                 WITH (m = 16, ef_construction = 64);
             """)
             # Indexes for filtering
-            cur.execute(f"CREATE INDEX IF NOT EXISTS {self.table_name}_document_id ON {self.table_name} (document_id);")
-            cur.execute(f"CREATE INDEX IF NOT EXISTS {self.table_name}_source_file ON {self.table_name} (source_file);")
+            cur.execute(
+                f"CREATE INDEX IF NOT EXISTS {self.table_name}_document_id ON {self.table_name} (document_id);"
+            )
+            cur.execute(
+                f"CREATE INDEX IF NOT EXISTS {self.table_name}_source_file ON {self.table_name} (source_file);"
+            )
 
     def close(self):
         self._conn.close()
@@ -117,7 +122,9 @@ class PgVectorClient:
         if not to_embed:
             return {"inserted": 0, "updated": 0, "skipped": skipped}
 
-        print(f"  [pgvector] Generating {len(to_embed)} embeddings via {self.embedder_config.provider}/{self.embedder_config.model}...")
+        print(
+            f"  [pgvector] Generating {len(to_embed)} embeddings via {self.embedder_config.provider}/{self.embedder_config.model}..."
+        )
         texts = [c.text for c in to_embed]
         embeddings = embed_texts(texts, self.embedder_config)
 
@@ -125,7 +132,6 @@ class PgVectorClient:
         updated = 0
 
         with self._conn.cursor() as cur:
-            import psycopg2.extras
             for chunk, embedding in zip(to_embed, embeddings):
                 vec_str = f"[{','.join(str(v) for v in embedding)}]"
                 meta = {
@@ -136,7 +142,8 @@ class PgVectorClient:
                     "chunk_config": collection.metadata.chunk_config,
                 }
 
-                cur.execute(f"""
+                cur.execute(
+                    f"""
                     INSERT INTO {self.table_name}
                         (chunk_id, document_id, source_file, page_numbers, heading_context,
                          chunk_text, token_count, has_table, has_heading, embedding, metadata)
@@ -150,19 +157,21 @@ class PgVectorClient:
                         metadata        = EXCLUDED.metadata,
                         created_at      = NOW()
                     RETURNING (xmax = 0) AS inserted
-                """, (
-                    chunk.chunk_id,
-                    doc_id,
-                    collection.metadata.source_file,
-                    chunk.source_pages,
-                    chunk.heading_context,
-                    chunk.text,
-                    chunk.token_count,
-                    chunk.metadata.has_table,
-                    chunk.metadata.has_heading,
-                    vec_str,
-                    json.dumps(meta),
-                ))
+                """,
+                    (
+                        chunk.chunk_id,
+                        doc_id,
+                        collection.metadata.source_file,
+                        chunk.source_pages,
+                        chunk.heading_context,
+                        chunk.text,
+                        chunk.token_count,
+                        chunk.metadata.has_table,
+                        chunk.metadata.has_heading,
+                        vec_str,
+                        json.dumps(meta),
+                    ),
+                )
                 row = cur.fetchone()
                 if row and row[0]:
                     inserted += 1
@@ -185,16 +194,10 @@ class PgVectorClient:
         [query_embedding] = embed_texts([query], self.embedder_config)
         vec_str = f"[{','.join(str(v) for v in query_embedding)}]"
 
-        filter_clause = ""
-        params: list[Any] = [vec_str, top_k]
-
-        if document_id:
-            filter_clause = "WHERE document_id = %s"
-            params = [vec_str, document_id, top_k]
-
         with self._conn.cursor() as cur:
             if document_id:
-                cur.execute(f"""
+                cur.execute(
+                    f"""
                     SELECT
                         chunk_id, document_id, source_file, page_numbers,
                         heading_context, chunk_text, token_count, has_table, has_heading,
@@ -204,9 +207,12 @@ class PgVectorClient:
                     WHERE document_id = %s
                     ORDER BY embedding <=> %s::vector
                     LIMIT %s
-                """, [vec_str, document_id, vec_str, top_k])
+                """,
+                    [vec_str, document_id, vec_str, top_k],
+                )
             else:
-                cur.execute(f"""
+                cur.execute(
+                    f"""
                     SELECT
                         chunk_id, document_id, source_file, page_numbers,
                         heading_context, chunk_text, token_count, has_table, has_heading,
@@ -215,7 +221,9 @@ class PgVectorClient:
                     FROM {self.table_name}
                     ORDER BY embedding <=> %s::vector
                     LIMIT %s
-                """, [vec_str, vec_str, top_k])
+                """,
+                    [vec_str, vec_str, top_k],
+                )
 
             cols = [d[0] for d in cur.description]
             results = []
@@ -230,7 +238,9 @@ class PgVectorClient:
         with self._conn.cursor() as cur:
             cur.execute(f"SELECT COUNT(*) FROM {self.table_name}")
             total_chunks = cur.fetchone()[0]
-            cur.execute(f"SELECT document_id, COUNT(*) FROM {self.table_name} GROUP BY document_id ORDER BY COUNT(*) DESC")
+            cur.execute(
+                f"SELECT document_id, COUNT(*) FROM {self.table_name} GROUP BY document_id ORDER BY COUNT(*) DESC"
+            )
             by_document = {row[0]: row[1] for row in cur.fetchall()}
             cur.execute(f"SELECT pg_size_pretty(pg_total_relation_size('{self.table_name}'))")
             table_size = cur.fetchone()[0]

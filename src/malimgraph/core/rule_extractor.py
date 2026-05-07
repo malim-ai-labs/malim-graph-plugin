@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from malimgraph.core.pdf_reader import DocumentContent, PageContent
 from malimgraph.schemas.entities import Citation, Confidence, Entity, ExtractionMethod
@@ -50,7 +50,10 @@ PATTERNS: list[tuple[str, str, re.Pattern]] = [
     (
         "monetary_amount",
         "MonetaryAmount",
-        re.compile(r"(?:USD|MYR|RM|EUR|GBP|SGD|\$|€|£)\s*[\d,]+(?:\.\d{2})?(?:\s*(?:million|billion|thousand|M|B|K))?", re.IGNORECASE),
+        re.compile(
+            r"(?:USD|MYR|RM|EUR|GBP|SGD|\$|€|£)\s*[\d,]+(?:\.\d{2})?(?:\s*(?:million|billion|thousand|M|B|K))?",
+            re.IGNORECASE,
+        ),
     ),
     (
         "percentage",
@@ -68,7 +71,9 @@ PATTERNS: list[tuple[str, str, re.Pattern]] = [
     (
         "company_number",
         "CompanyRegistration",
-        re.compile(r"\b(?:Reg(?:istration)?\.?\s*No\.?|SSM|CCM)\s*[:\-]?\s*[\d\-]+\b", re.IGNORECASE),
+        re.compile(
+            r"\b(?:Reg(?:istration)?\.?\s*No\.?|SSM|CCM)\s*[:\-]?\s*[\d\-]+\b", re.IGNORECASE
+        ),
     ),
     (
         "ic_number",

@@ -6,7 +6,12 @@
       "Bash(git remote *)",
       "Bash(git branch *)",
       "Bash(git push *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(gh run *)",
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "Bash(pip install *)",
+      "PowerShell(python --version)",
+      "PowerShell(python -m pip install ruff 2>&1)"
     ]
   }
 }

@@ -37,12 +37,11 @@ async def extract_knowledge_graph(
         output_format: Output format — json | cypher | age_sql | all.
         graph_name: Graph name used in AGE SQL output.
     """
+    from malimgraph.core.graph_builder import build_knowledge_graph
     from malimgraph.core.pdf_reader import extract_text_from_pdf
     from malimgraph.core.rule_extractor import extract_by_rules
-    from malimgraph.core.llm_extractor import extract_by_llm
-    from malimgraph.core.graph_builder import build_knowledge_graph
-    from malimgraph.generators.cypher import generate_cypher
     from malimgraph.generators.age_sql import generate_age_sql
+    from malimgraph.generators.cypher import generate_cypher
 
     if not os.path.exists(pdf_path):
         return {"error": f"PDF not found: {pdf_path}"}
@@ -102,8 +101,8 @@ async def chunk_document(
         chunk_overlap: Overlap tokens between adjacent chunks (default: 64).
         output_format: Output format — json | txt | md.
     """
-    from malimgraph.core.pdf_reader import extract_text_from_pdf
     from malimgraph.core.chunker import chunk_document as _chunk
+    from malimgraph.core.pdf_reader import extract_text_from_pdf
 
     if not os.path.exists(pdf_path):
         return {"error": f"PDF not found: {pdf_path}"}
@@ -113,11 +112,21 @@ async def chunk_document(
 
     if output_format == "md":
         content = _chunks_to_markdown(collection)
-        return {"status": "success", "format": "md", "content": content, "metadata": collection.metadata.model_dump()}
+        return {
+            "status": "success",
+            "format": "md",
+            "content": content,
+            "metadata": collection.metadata.model_dump(),
+        }
 
     if output_format == "txt":
         files = _chunks_to_txt_map(collection)
-        return {"status": "success", "format": "txt", "files": files, "metadata": collection.metadata.model_dump()}
+        return {
+            "status": "success",
+            "format": "txt",
+            "files": files,
+            "metadata": collection.metadata.model_dump(),
+        }
 
     return {
         "status": "success",
@@ -145,8 +154,8 @@ async def render_document_html(
         include_toc: Whether to include a table of contents sidebar.
         include_search: Whether to include a sticky search bar.
     """
-    from malimgraph.core.pdf_reader import extract_text_from_pdf
     from malimgraph.core.html_renderer import render_document_html as _render
+    from malimgraph.core.pdf_reader import extract_text_from_pdf
     from malimgraph.schemas.entities import KnowledgeGraph
 
     if not os.path.exists(pdf_path):
@@ -159,7 +168,9 @@ async def render_document_html(
         with open(knowledge_graph_path, "r", encoding="utf-8") as f:
             kg = KnowledgeGraph.model_validate(json.load(f))
 
-    html_content = _render(doc, knowledge_graph=kg, include_toc=include_toc, include_search=include_search)
+    html_content = _render(
+        doc, knowledge_graph=kg, include_toc=include_toc, include_search=include_search
+    )
 
     return {
         "status": "success",
@@ -292,6 +303,7 @@ async def embed_and_store_chunks(
         return {"error": "connection_uri or PGVECTOR_URI environment variable required."}
 
     import json as _json
+
     with open(chunks_path, "r", encoding="utf-8") as f:
         collection = ChunkCollection.model_validate(_json.load(f))
 
@@ -324,13 +336,16 @@ async def embed_and_store_chunks(
 async def _run_llm(doc, entity_types):
     """Run LLM extraction in thread pool to avoid blocking the event loop."""
     import asyncio
+
     from malimgraph.core.llm_extractor import extract_by_llm
+
     loop = asyncio.get_event_loop()
     return await loop.run_in_executor(None, extract_by_llm, doc, entity_types)
 
 
 async def _run_in_executor(fn, *args):
     import asyncio
+
     loop = asyncio.get_event_loop()
     return await loop.run_in_executor(None, fn, *args)
 

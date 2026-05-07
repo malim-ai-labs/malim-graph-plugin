@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import html
-import json
 import os
 from typing import Optional
 
@@ -54,20 +53,19 @@ def _build_toc(doc: DocumentContent) -> str:
             items.append(
                 f'<li><a href="#{anchor}">'
                 f'<span class="toc-page">p.{page.page_number}</span> '
-                f'{html.escape(heading[:80])}</a></li>'
+                f"{html.escape(heading[:80])}</a></li>"
             )
 
     if not items:
         items = [
-            f'<li><a href="#page-{p.page_number}">Page {p.page_number}</a></li>'
-            for p in doc.pages
+            f'<li><a href="#page-{p.page_number}">Page {p.page_number}</a></li>' for p in doc.pages
         ]
 
     return f"""
 <nav id="toc" aria-label="Table of Contents">
   <h2>Table of Contents</h2>
   <ul>
-    {''.join(items)}
+    {"".join(items)}
   </ul>
 </nav>"""
 
@@ -112,6 +110,7 @@ def _annotate_entities(text: str, entities: list[Entity]) -> str:
 
     # Build a list of (start, end, entity) for all matches
     import re
+
     annotations: list[tuple[int, int, Entity]] = []
 
     for entity in entities:
@@ -138,7 +137,7 @@ def _annotate_entities(text: str, entities: list[Entity]) -> str:
             f'<mark data-entity-id="{html.escape(entity.id)}" '
             f'data-entity-type="{html.escape(entity.type)}" '
             f'title="{html.escape(entity.type)}: {html.escape(entity.label)}">'
-            f'{html.escape(text[start:end])}</mark>'
+            f"{html.escape(text[start:end])}</mark>"
         )
         cursor = end
 

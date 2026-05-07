@@ -1,9 +1,10 @@
 """Tests for pgvector client — mocked to avoid requiring a live database."""
-from unittest.mock import MagicMock, patch
+
+from unittest.mock import patch
 
 import pytest
 
-from malimgraph.core.embedder import EmbedderConfig, _model_dimension, _default_model
+from malimgraph.core.embedder import EmbedderConfig, _default_model, _model_dimension
 
 
 def test_embedder_config_defaults():
@@ -43,7 +44,8 @@ def test_default_model_per_provider():
 
 def test_embed_texts_openai_import_error():
     """embed_texts raises ImportError with helpful message when openai not installed."""
-    from malimgraph.core.embedder import embed_texts, EmbedderConfig
+    from malimgraph.core.embedder import EmbedderConfig, embed_texts
+
     with patch.dict("sys.modules", {"openai": None}):
         config = EmbedderConfig(provider="openai", api_key="test")
         with pytest.raises(ImportError, match="openai"):
@@ -52,7 +54,8 @@ def test_embed_texts_openai_import_error():
 
 def test_embed_texts_empty_list():
     """embed_texts returns empty list for empty input without any API call."""
-    from malimgraph.core.embedder import embed_texts, EmbedderConfig
+    from malimgraph.core.embedder import EmbedderConfig, embed_texts
+
     config = EmbedderConfig(provider="openai", api_key="test")
     result = embed_texts([], config)
     assert result == []
@@ -62,13 +65,15 @@ def test_pgvector_client_import_error():
     """PgVectorClient raises ImportError when psycopg2 is not installed."""
     with patch.dict("sys.modules", {"psycopg2": None}):
         from malimgraph.core.vector_client import PgVectorClient
+
         with pytest.raises((ImportError, Exception)):
             PgVectorClient("postgresql://localhost/test")
 
 
 def test_invalid_embedding_provider():
     """embed_texts raises ValueError for unknown provider."""
-    from malimgraph.core.embedder import embed_texts, EmbedderConfig
+    from malimgraph.core.embedder import EmbedderConfig, embed_texts
+
     config = EmbedderConfig.__new__(EmbedderConfig)
     config.provider = "unknown_provider"
     config.model = "some-model"

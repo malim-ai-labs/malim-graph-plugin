@@ -1,12 +1,11 @@
 """Tests for graph_builder merge and dedup logic."""
-import pytest
 
-from malimgraph.core.pdf_reader import DocumentContent, PageContent
 from malimgraph.core.graph_builder import (
     _merge_entities,
     _validate_relationships,
     build_knowledge_graph,
 )
+from malimgraph.core.pdf_reader import DocumentContent, PageContent
 from malimgraph.schemas.entities import (
     Citation,
     Confidence,
@@ -41,8 +40,17 @@ def _make_entity(label: str, etype: str, method: ExtractionMethod, page: int = 1
 
 
 def _make_doc() -> DocumentContent:
-    page = PageContent(page_number=1, text="Test content.", headings=[], blocks=[], has_table=False, is_scanned=False)
-    return DocumentContent(source_file="test.pdf", total_pages=1, title="Test", metadata={}, pages=[page])
+    page = PageContent(
+        page_number=1,
+        text="Test content.",
+        headings=[],
+        blocks=[],
+        has_table=False,
+        is_scanned=False,
+    )
+    return DocumentContent(
+        source_file="test.pdf", total_pages=1, title="Test", metadata={}, pages=[page]
+    )
 
 
 def test_merge_entities_llm_wins_on_semantics():

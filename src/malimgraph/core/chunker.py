@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 
-from malimgraph.core.pdf_reader import DocumentContent, PageContent
+from malimgraph.core.pdf_reader import DocumentContent
 from malimgraph.schemas.chunks import (
     Chunk,
     ChunkCollection,
@@ -51,14 +51,16 @@ def _extract_paragraphs(doc: DocumentContent) -> list[dict]:
     for page in doc.pages:
         if page.is_scanned:
             # Still include scanned pages as single paragraphs for awareness
-            paragraphs.append({
-                "text": f"[Scanned page {page.page_number} — text may be incomplete]",
-                "page": page.page_number,
-                "headings": list(heading_stack),
-                "has_table": page.has_table,
-                "is_heading": False,
-                "char_start": 0,
-            })
+            paragraphs.append(
+                {
+                    "text": f"[Scanned page {page.page_number} — text may be incomplete]",
+                    "page": page.page_number,
+                    "headings": list(heading_stack),
+                    "has_table": page.has_table,
+                    "is_heading": False,
+                    "char_start": 0,
+                }
+            )
             continue
 
         # Track accumulated character offset within the full document
@@ -73,14 +75,16 @@ def _extract_paragraphs(doc: DocumentContent) -> list[dict]:
                 # Update heading context stack (simple: just accumulate)
                 heading_stack = heading_stack[-2:] + [text]
 
-            paragraphs.append({
-                "text": text,
-                "page": page.page_number,
-                "headings": list(heading_stack),
-                "has_table": page.has_table and not is_heading,
-                "is_heading": is_heading,
-                "char_start": 0,  # filled in below
-            })
+            paragraphs.append(
+                {
+                    "text": text,
+                    "page": page.page_number,
+                    "headings": list(heading_stack),
+                    "has_table": page.has_table and not is_heading,
+                    "is_heading": is_heading,
+                    "char_start": 0,  # filled in below
+                }
+            )
 
     # Assign character offsets across the full document
     char_pos = 0

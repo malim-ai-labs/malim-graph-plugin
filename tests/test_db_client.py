@@ -1,5 +1,6 @@
 """Tests for db_client — mocked to avoid requiring live databases."""
-from unittest.mock import MagicMock, patch
+
+from unittest.mock import patch
 
 import pytest
 
@@ -27,6 +28,7 @@ def test_neo4j_import_error():
     """Neo4jClient raises ImportError with helpful message when neo4j not installed."""
     with patch.dict("sys.modules", {"neo4j": None}):
         from malimgraph.core.db_client import Neo4jClient
+
         with pytest.raises((ImportError, Exception)):
             Neo4jClient("bolt://localhost:7687", "neo4j", "password")
 
@@ -35,5 +37,6 @@ def test_age_import_error():
     """AGEClient raises ImportError with helpful message when psycopg2 not installed."""
     with patch.dict("sys.modules", {"psycopg2": None}):
         from malimgraph.core.db_client import AGEClient
+
         with pytest.raises((ImportError, Exception)):
             AGEClient("host=localhost dbname=test user=postgres")

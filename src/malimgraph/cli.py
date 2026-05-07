@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import json
 import os
 import sys
@@ -18,19 +17,42 @@ def cli():
 
 
 @cli.command("extract")
-@click.option("--input", "-i", "input_path", required=True, type=click.Path(exists=True), help="Path to the PDF file.")
-@click.option("--output", "-o", "output_dir", default="./output", show_default=True, help="Output directory.")
-@click.option("--entity-types", default="auto", show_default=True, help="Comma-separated entity types or 'auto'.")
-@click.option("--format", "output_format", default="all", show_default=True, type=click.Choice(["json", "cypher", "age_sql", "all"]), help="Output format(s).")
-@click.option("--graph-name", default="document_graph", show_default=True, help="Graph name for AGE SQL.")
+@click.option(
+    "--input",
+    "-i",
+    "input_path",
+    required=True,
+    type=click.Path(exists=True),
+    help="Path to the PDF file.",
+)
+@click.option(
+    "--output", "-o", "output_dir", default="./output", show_default=True, help="Output directory."
+)
+@click.option(
+    "--entity-types",
+    default="auto",
+    show_default=True,
+    help="Comma-separated entity types or 'auto'.",
+)
+@click.option(
+    "--format",
+    "output_format",
+    default="all",
+    show_default=True,
+    type=click.Choice(["json", "cypher", "age_sql", "all"]),
+    help="Output format(s).",
+)
+@click.option(
+    "--graph-name", default="document_graph", show_default=True, help="Graph name for AGE SQL."
+)
 def extract_cmd(input_path, output_dir, entity_types, output_format, graph_name):
     """Extract a knowledge graph from a PDF document."""
+    from malimgraph.core.graph_builder import build_knowledge_graph
+    from malimgraph.core.llm_extractor import extract_by_llm
     from malimgraph.core.pdf_reader import extract_text_from_pdf
     from malimgraph.core.rule_extractor import extract_by_rules
-    from malimgraph.core.llm_extractor import extract_by_llm
-    from malimgraph.core.graph_builder import build_knowledge_graph
-    from malimgraph.generators.cypher import generate_cypher
     from malimgraph.generators.age_sql import generate_age_sql
+    from malimgraph.generators.cypher import generate_cypher
 
     os.makedirs(output_dir, exist_ok=True)
 
@@ -55,7 +77,9 @@ def extract_cmd(input_path, output_dir, entity_types, output_format, graph_name)
         llm_entities, llm_relationships = [], []
 
     kg = build_knowledge_graph(doc, rule_entities, llm_entities, llm_relationships, graph_name)
-    click.echo(f"[extract] Graph: {kg.metadata.total_entities} entities, {kg.metadata.total_relationships} relationships")
+    click.echo(
+        f"[extract] Graph: {kg.metadata.total_entities} entities, {kg.metadata.total_relationships} relationships"
+    )
 
     # Write JSON
     kg_path = os.path.join(output_dir, "knowledge_graph.json")
@@ -83,18 +107,26 @@ def extract_cmd(input_path, output_dir, entity_types, output_format, graph_name)
 @click.option("--output", "-o", "output_dir", default="./chunks", show_default=True)
 @click.option("--chunk-size", default=512, show_default=True, type=int)
 @click.option("--overlap", default=64, show_default=True, type=int)
-@click.option("--format", "output_format", default="json", show_default=True, type=click.Choice(["json", "txt", "md"]))
+@click.option(
+    "--format",
+    "output_format",
+    default="json",
+    show_default=True,
+    type=click.Choice(["json", "txt", "md"]),
+)
 def chunk_cmd(input_path, output_dir, chunk_size, overlap, output_format):
     """Split a PDF into embedding-ready text chunks."""
-    from malimgraph.core.pdf_reader import extract_text_from_pdf
     from malimgraph.core.chunker import chunk_document
+    from malimgraph.core.pdf_reader import extract_text_from_pdf
 
     os.makedirs(output_dir, exist_ok=True)
 
     click.echo(f"[chunk] Reading: {input_path}")
     doc = extract_text_from_pdf(input_path)
     collection = chunk_document(doc, chunk_size=chunk_size, chunk_overlap=overlap)
-    click.echo(f"  → {collection.metadata.total_chunks} chunks, {collection.metadata.total_tokens} tokens")
+    click.echo(
+        f"  → {collection.metadata.total_chunks} chunks, {collection.metadata.total_tokens} tokens"
+    )
 
     if output_format == "json":
         out_path = os.path.join(output_dir, "chunks.json")
@@ -135,13 +167,19 @@ def chunk_cmd(input_path, output_dir, chunk_size, overlap, output_format):
 @cli.command("render")
 @click.option("--input", "-i", "input_path", required=True, type=click.Path(exists=True))
 @click.option("--output", "-o", "output_path", default="document.html", show_default=True)
-@click.option("--knowledge-graph", "kg_path", default=None, type=click.Path(), help="knowledge_graph.json for entity annotations.")
+@click.option(
+    "--knowledge-graph",
+    "kg_path",
+    default=None,
+    type=click.Path(),
+    help="knowledge_graph.json for entity annotations.",
+)
 @click.option("--toc/--no-toc", default=True, show_default=True)
 @click.option("--search/--no-search", default=True, show_default=True)
 def render_cmd(input_path, output_path, kg_path, toc, search):
     """Render a PDF as structured, LLM-readable HTML."""
-    from malimgraph.core.pdf_reader import extract_text_from_pdf
     from malimgraph.core.html_renderer import render_document_html
+    from malimgraph.core.pdf_reader import extract_text_from_pdf
     from malimgraph.schemas.entities import KnowledgeGraph
 
     click.echo(f"[render] Reading: {input_path}")
@@ -153,7 +191,9 @@ def render_cmd(input_path, output_path, kg_path, toc, search):
             kg = KnowledgeGraph.model_validate(json.load(f))
         click.echo(f"  → Annotating with {len(kg.entities)} entities from {kg_path}")
 
-    html_content = render_document_html(doc, knowledge_graph=kg, include_toc=toc, include_search=search)
+    html_content = render_document_html(
+        doc, knowledge_graph=kg, include_toc=toc, include_search=search
+    )
 
     os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:
@@ -169,7 +209,14 @@ def db_group():
 
 
 @db_group.command("load")
-@click.option("--input", "-i", "input_path", required=True, type=click.Path(exists=True), help="knowledge_graph.json to load.")
+@click.option(
+    "--input",
+    "-i",
+    "input_path",
+    required=True,
+    type=click.Path(exists=True),
+    help="knowledge_graph.json to load.",
+)
 @click.option("--target", default="neo4j", show_default=True, type=click.Choice(["neo4j", "age"]))
 @click.option("--uri", default=None, help="Connection URI.")
 @click.option("--user", default=None, help="Neo4j user.")
@@ -259,13 +306,33 @@ def vector_group():
 
 
 @vector_group.command("load")
-@click.option("--input", "-i", "input_path", required=True, type=click.Path(exists=True), help="chunks.json from malimgraph chunk.")
+@click.option(
+    "--input",
+    "-i",
+    "input_path",
+    required=True,
+    type=click.Path(exists=True),
+    help="chunks.json from malimgraph chunk.",
+)
 @click.option("--uri", default=None, envvar="PGVECTOR_URI", help="PostgreSQL connection URI.")
 @click.option("--table", default="document_chunks", show_default=True, help="Target table name.")
-@click.option("--provider", default="openai", show_default=True, type=click.Choice(["openai", "voyage", "local"]), help="Embedding provider.")
-@click.option("--model", default=None, help="Embedding model override (uses provider default if omitted).")
+@click.option(
+    "--provider",
+    default="openai",
+    show_default=True,
+    type=click.Choice(["openai", "voyage", "local"]),
+    help="Embedding provider.",
+)
+@click.option(
+    "--model", default=None, help="Embedding model override (uses provider default if omitted)."
+)
 @click.option("--document-id", default=None, help="Document namespace (default: source filename).")
-@click.option("--skip-existing/--no-skip-existing", default=True, show_default=True, help="Skip chunks already in the table.")
+@click.option(
+    "--skip-existing/--no-skip-existing",
+    default=True,
+    show_default=True,
+    help="Skip chunks already in the table.",
+)
 def vector_load(input_path, uri, table, provider, model, document_id, skip_existing):
     """Embed chunks and store them in PostgreSQL with pgvector."""
     from malimgraph.core.embedder import EmbedderConfig
@@ -280,12 +347,16 @@ def vector_load(input_path, uri, table, provider, model, document_id, skip_exist
         collection = ChunkCollection.model_validate(json.load(f))
 
     config = EmbedderConfig(provider=provider, model=model)
-    click.echo(f"[vector] Provider: {config.provider} / Model: {config.model} (dim={config.dimension})")
+    click.echo(
+        f"[vector] Provider: {config.provider} / Model: {config.model} (dim={config.dimension})"
+    )
     click.echo(f"[vector] Chunks to process: {collection.metadata.total_chunks}")
 
     client = PgVectorClient(uri, table_name=table, embedder_config=config)
     try:
-        result = client.load_chunks(collection, document_id=document_id, skip_existing=skip_existing)
+        result = client.load_chunks(
+            collection, document_id=document_id, skip_existing=skip_existing
+        )
     finally:
         client.close()
 
@@ -299,11 +370,24 @@ def vector_load(input_path, uri, table, provider, model, document_id, skip_exist
 @click.option("--query", "-q", required=True, help="Search query text.")
 @click.option("--uri", default=None, envvar="PGVECTOR_URI")
 @click.option("--table", default="document_chunks", show_default=True)
-@click.option("--provider", default="openai", show_default=True, type=click.Choice(["openai", "voyage", "local"]))
+@click.option(
+    "--provider",
+    default="openai",
+    show_default=True,
+    type=click.Choice(["openai", "voyage", "local"]),
+)
 @click.option("--model", default=None)
-@click.option("--top-k", default=10, show_default=True, type=int, help="Number of results to return.")
+@click.option(
+    "--top-k", default=10, show_default=True, type=int, help="Number of results to return."
+)
 @click.option("--document-id", default=None, help="Limit search to a specific document.")
-@click.option("--min-score", default=0.0, show_default=True, type=float, help="Minimum cosine similarity score.")
+@click.option(
+    "--min-score",
+    default=0.0,
+    show_default=True,
+    type=float,
+    help="Minimum cosine similarity score.",
+)
 def vector_search(query, uri, table, provider, model, top_k, document_id, min_score):
     """Semantic search across embedded chunks."""
     from malimgraph.core.embedder import EmbedderConfig
@@ -316,7 +400,9 @@ def vector_search(query, uri, table, provider, model, top_k, document_id, min_sc
     config = EmbedderConfig(provider=provider, model=model)
     client = PgVectorClient(uri, table_name=table, embedder_config=config)
     try:
-        results = client.similarity_search(query, top_k=top_k, document_id=document_id, min_score=min_score)
+        results = client.similarity_search(
+            query, top_k=top_k, document_id=document_id, min_score=min_score
+        )
     finally:
         client.close()
 
@@ -327,7 +413,12 @@ def vector_search(query, uri, table, provider, model, top_k, document_id, min_sc
 @vector_group.command("stats")
 @click.option("--uri", default=None, envvar="PGVECTOR_URI")
 @click.option("--table", default="document_chunks", show_default=True)
-@click.option("--provider", default="openai", show_default=True, type=click.Choice(["openai", "voyage", "local"]))
+@click.option(
+    "--provider",
+    default="openai",
+    show_default=True,
+    type=click.Choice(["openai", "voyage", "local"]),
+)
 def vector_stats(uri, table, provider):
     """Show pgvector table statistics."""
     from malimgraph.core.embedder import EmbedderConfig
@@ -350,7 +441,12 @@ def vector_stats(uri, table, provider):
 @vector_group.command("list")
 @click.option("--uri", default=None, envvar="PGVECTOR_URI")
 @click.option("--table", default="document_chunks", show_default=True)
-@click.option("--provider", default="openai", show_default=True, type=click.Choice(["openai", "voyage", "local"]))
+@click.option(
+    "--provider",
+    default="openai",
+    show_default=True,
+    type=click.Choice(["openai", "voyage", "local"]),
+)
 def vector_list(uri, table, provider):
     """List all indexed documents."""
     from malimgraph.core.embedder import EmbedderConfig
@@ -374,7 +470,12 @@ def vector_list(uri, table, provider):
 @click.option("--document-id", required=True, help="Document ID to remove from the table.")
 @click.option("--uri", default=None, envvar="PGVECTOR_URI")
 @click.option("--table", default="document_chunks", show_default=True)
-@click.option("--provider", default="openai", show_default=True, type=click.Choice(["openai", "voyage", "local"]))
+@click.option(
+    "--provider",
+    default="openai",
+    show_default=True,
+    type=click.Choice(["openai", "voyage", "local"]),
+)
 def vector_delete(document_id, uri, table, provider):
     """Delete all chunks for a document from the vector table."""
     from malimgraph.core.embedder import EmbedderConfig
@@ -395,12 +496,19 @@ def vector_delete(document_id, uri, table, provider):
 
 
 @cli.command("serve")
-@click.option("--transport", default="stdio", show_default=True, type=click.Choice(["stdio", "http"]))
+@click.option(
+    "--transport", default="stdio", show_default=True, type=click.Choice(["stdio", "http"])
+)
 @click.option("--port", default=8080, show_default=True, type=int)
 def serve_cmd(transport, port):
     """Start the MalimGraph MCP server."""
     from malimgraph.server import run_server
-    click.echo(f"[serve] Starting MCP server (transport={transport}" + (f", port={port}" if transport == "http" else "") + ")")
+
+    click.echo(
+        f"[serve] Starting MCP server (transport={transport}"
+        + (f", port={port}" if transport == "http" else "")
+        + ")"
+    )
     run_server(transport=transport, port=port)
 
 

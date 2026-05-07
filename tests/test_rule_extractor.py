@@ -1,8 +1,7 @@
 """Tests for rule-based entity extraction."""
-import pytest
 
 from malimgraph.core.pdf_reader import DocumentContent, PageContent
-from malimgraph.core.rule_extractor import extract_by_rules, _find_matches_in_page
+from malimgraph.core.rule_extractor import extract_by_rules
 from malimgraph.schemas.entities import ExtractionMethod
 
 
@@ -15,14 +14,16 @@ def _make_doc(text: str, page_num: int = 1) -> DocumentContent:
         has_table=False,
         is_scanned=False,
     )
-    return DocumentContent(source_file="test.pdf", total_pages=1, title="Test", metadata={}, pages=[page])
+    return DocumentContent(
+        source_file="test.pdf", total_pages=1, title="Test", metadata={}, pages=[page]
+    )
 
 
 def test_extracts_email():
     doc = _make_doc("Contact us at hello@malim.my for more info.")
     entities = extract_by_rules(doc)
     labels = [e.label for e in entities]
-    assert any("hello@malim.my" in l for l in labels)
+    assert any("hello@malim.my" in label for label in labels)
 
 
 def test_extracts_monetary_amount():
@@ -70,9 +71,25 @@ def test_entity_extraction_method_is_rule():
 
 def test_deduplication_across_pages():
     """Same entity on multiple pages should be merged with accumulated pages."""
-    page1 = PageContent(page_number=1, text="Revenue: RM 1,000,000", headings=[], blocks=[], has_table=False, is_scanned=False)
-    page2 = PageContent(page_number=2, text="Revenue: RM 1,000,000", headings=[], blocks=[], has_table=False, is_scanned=False)
-    doc = DocumentContent(source_file="test.pdf", total_pages=2, title="Test", metadata={}, pages=[page1, page2])
+    page1 = PageContent(
+        page_number=1,
+        text="Revenue: RM 1,000,000",
+        headings=[],
+        blocks=[],
+        has_table=False,
+        is_scanned=False,
+    )
+    page2 = PageContent(
+        page_number=2,
+        text="Revenue: RM 1,000,000",
+        headings=[],
+        blocks=[],
+        has_table=False,
+        is_scanned=False,
+    )
+    doc = DocumentContent(
+        source_file="test.pdf", total_pages=2, title="Test", metadata={}, pages=[page1, page2]
+    )
 
     entities = extract_by_rules(doc)
     amount_entities = [e for e in entities if e.label == "RM 1,000,000"]

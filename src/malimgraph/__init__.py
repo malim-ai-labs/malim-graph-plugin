@@ -4,6 +4,7 @@ __version__ = "0.1.0"
 __author__ = "Malim AI Labs"
 __email__ = "hello@malim.my"
 
+from malimgraph.schemas.chunks import Chunk, ChunkCollection
 from malimgraph.schemas.entities import (
     Citation,
     Confidence,
@@ -13,7 +14,6 @@ from malimgraph.schemas.entities import (
     KnowledgeGraph,
     Relationship,
 )
-from malimgraph.schemas.chunks import Chunk, ChunkCollection
 
 __all__ = [
     "Citation",

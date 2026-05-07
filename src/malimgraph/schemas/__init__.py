@@ -1,4 +1,7 @@
+from malimgraph.schemas.chunks import Chunk, ChunkCollection, ChunkMetadata, ChunkPosition
+from malimgraph.schemas.config import Settings
 from malimgraph.schemas.entities import (
+    ChunkIndex,
     Citation,
     Confidence,
     Entity,
@@ -6,10 +9,7 @@ from malimgraph.schemas.entities import (
     GraphMetadata,
     KnowledgeGraph,
     Relationship,
-    ChunkIndex,
 )
-from malimgraph.schemas.chunks import Chunk, ChunkCollection, ChunkMetadata, ChunkPosition
-from malimgraph.schemas.config import Settings
 
 __all__ = [
     "Citation",

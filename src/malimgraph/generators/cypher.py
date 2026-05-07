@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from typing import Any
 
 from malimgraph.schemas.entities import KnowledgeGraph
@@ -27,9 +26,7 @@ def generate_cypher(kg: KnowledgeGraph) -> str:
     entity_types = kg.metadata.entity_types
     lines.append("// ── Constraints ─────────────────────────────────────────────────────────")
     for etype in entity_types:
-        lines.append(
-            f"CREATE CONSTRAINT IF NOT EXISTS FOR (n:{etype}) REQUIRE n.id IS UNIQUE;"
-        )
+        lines.append(f"CREATE CONSTRAINT IF NOT EXISTS FOR (n:{etype}) REQUIRE n.id IS UNIQUE;")
     lines.append("")
 
     # Create entity nodes
@@ -104,9 +101,7 @@ def _dict_to_cypher(d: dict[str, Any]) -> str:
         elif isinstance(value, list):
             # Cypher list literal
             items = ", ".join(
-                f"'{escape_cypher_string(str(i))}'" if isinstance(i, str)
-                else str(i)
-                for i in value
+                f"'{escape_cypher_string(str(i))}'" if isinstance(i, str) else str(i) for i in value
             )
             parts.append(f"{key}: [{items}]")
         else:

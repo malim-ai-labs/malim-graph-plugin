@@ -1,8 +1,7 @@
 """Tests for Cypher and AGE SQL generators."""
-import pytest
 
-from malimgraph.generators.cypher import generate_cypher, _dict_to_cypher
 from malimgraph.generators.age_sql import generate_age_sql
+from malimgraph.generators.cypher import _dict_to_cypher, generate_cypher
 
 
 def test_generate_cypher_contains_constraints(sample_kg):

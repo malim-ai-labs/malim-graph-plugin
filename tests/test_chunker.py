@@ -1,8 +1,7 @@
 """Tests for the document chunker."""
-import pytest
 
+from malimgraph.core.chunker import chunk_document
 from malimgraph.core.pdf_reader import DocumentContent, PageContent
-from malimgraph.core.chunker import chunk_document, _extract_paragraphs
 
 
 def _make_doc(pages_text: list[str]) -> DocumentContent:
@@ -11,13 +10,19 @@ def _make_doc(pages_text: list[str]) -> DocumentContent:
             page_number=i + 1,
             text=text,
             headings=[],
-            blocks=[{"text": t, "is_heading": False, "font_size": 12.0, "bbox": []} for t in text.split("\n\n") if t],
+            blocks=[
+                {"text": t, "is_heading": False, "font_size": 12.0, "bbox": []}
+                for t in text.split("\n\n")
+                if t
+            ],
             has_table=False,
             is_scanned=False,
         )
         for i, text in enumerate(pages_text)
     ]
-    return DocumentContent(source_file="test.pdf", total_pages=len(pages), title="Test", metadata={}, pages=pages)
+    return DocumentContent(
+        source_file="test.pdf", total_pages=len(pages), title="Test", metadata={}, pages=pages
+    )
 
 
 def test_chunk_document_produces_chunks():

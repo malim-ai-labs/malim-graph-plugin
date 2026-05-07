@@ -1,8 +1,7 @@
 """Tests for the HTML renderer."""
-import pytest
 
+from malimgraph.core.html_renderer import _build_entity_page_map, render_document_html
 from malimgraph.core.pdf_reader import DocumentContent, PageContent
-from malimgraph.core.html_renderer import render_document_html, _build_entity_page_map
 
 
 def _make_doc(pages_text: list[str], headings_per_page: list[list[str]] = None) -> DocumentContent:
@@ -18,7 +17,13 @@ def _make_doc(pages_text: list[str], headings_per_page: list[list[str]] = None) 
         )
         for i, text in enumerate(pages_text)
     ]
-    return DocumentContent(source_file="test.pdf", total_pages=len(pages), title="Test Document", metadata={}, pages=pages)
+    return DocumentContent(
+        source_file="test.pdf",
+        total_pages=len(pages),
+        title="Test Document",
+        metadata={},
+        pages=pages,
+    )
 
 
 def test_render_produces_html(sample_kg):

@@ -4,10 +4,8 @@ from __future__ import annotations
 
 import json
 import os
-from typing import Any, Optional
 
 from malimgraph.schemas.entities import KnowledgeGraph
-from malimgraph.utils.text import escape_cypher_string
 
 
 class Neo4jClient:
@@ -49,8 +47,10 @@ class Neo4jClient:
                     "source_text": entity.source_text[:500],
                     "citation_count": len(entity.citations),
                     "citation_texts": [c.text[:200] for c in entity.citations[:5]],
-                    **{k: str(v) if not isinstance(v, (str, int, float, bool, list)) else v
-                       for k, v in entity.properties.items()},
+                    **{
+                        k: str(v) if not isinstance(v, (str, int, float, bool, list)) else v
+                        for k, v in entity.properties.items()
+                    },
                 }
                 session.run(
                     f"MERGE (n:{entity.type} {{id: $id}}) SET n += $props",
@@ -93,7 +93,12 @@ class Neo4jClient:
             node_count = session.run("MATCH (n) RETURN count(n) AS count").single()["count"]
             rel_count = session.run("MATCH ()-[r]->() RETURN count(r) AS count").single()["count"]
             labels = [r["label"] for r in session.run("CALL db.labels() YIELD label RETURN label")]
-            rel_types = [r["relationshipType"] for r in session.run("CALL db.relationshipTypes() YIELD relationshipType RETURN relationshipType")]
+            rel_types = [
+                r["relationshipType"]
+                for r in session.run(
+                    "CALL db.relationshipTypes() YIELD relationshipType RETURN relationshipType"
+                )
+            ]
         return {
             "node_count": node_count,
             "relationship_count": rel_count,
@@ -106,6 +111,7 @@ class AGEClient:
     def __init__(self, connection_uri: str, graph_name: str = "document_graph"):
         try:
             import psycopg2
+
             self._psycopg2 = psycopg2
         except ImportError:
             raise ImportError("Install psycopg2: pip install malimgraph[age]")
@@ -138,14 +144,16 @@ class AGEClient:
             cur.execute("SET search_path = ag_catalog, '$user', public;")
 
             for entity in kg.entities:
-                props_json = json.dumps({
-                    "id": entity.id,
-                    "label": entity.label,
-                    "confidence": entity.confidence.value,
-                    "extraction_method": entity.extraction_method.value,
-                    "source_text": entity.source_text[:500],
-                    "citation_count": len(entity.citations),
-                })
+                props_json = json.dumps(
+                    {
+                        "id": entity.id,
+                        "label": entity.label,
+                        "confidence": entity.confidence.value,
+                        "extraction_method": entity.extraction_method.value,
+                        "source_text": entity.source_text[:500],
+                        "citation_count": len(entity.citations),
+                    }
+                )
                 cur.execute(
                     f"SELECT * FROM cypher('{self.graph_name}', $$ "
                     f"MERGE (n:{entity.type} {{id: '{entity.id}'}}) SET n += {props_json} RETURN n "
@@ -154,11 +162,13 @@ class AGEClient:
                 nodes_created += 1
 
             for rel in kg.relationships:
-                props_json = json.dumps({
-                    "id": rel.id,
-                    "confidence": rel.confidence.value,
-                    "source_text": rel.source_text[:500],
-                })
+                props_json = json.dumps(
+                    {
+                        "id": rel.id,
+                        "confidence": rel.confidence.value,
+                        "source_text": rel.source_text[:500],
+                    }
+                )
                 cur.execute(
                     f"SELECT * FROM cypher('{self.graph_name}', $$ "
                     f"MATCH (a {{id: '{rel.source}'}}), (b {{id: '{rel.target}'}}) "
@@ -193,7 +203,11 @@ class AGEClient:
                 f"SELECT count(*) FROM cypher('{self.graph_name}', $$ MATCH ()-[r]->() RETURN r $$) AS (r agtype);"
             )
             rel_count = cur.fetchone()[0]
-        return {"graph_name": self.graph_name, "node_count": node_count, "relationship_count": rel_count}
+        return {
+            "graph_name": self.graph_name,
+            "node_count": node_count,
+            "relationship_count": rel_count,
+        }
 
     def drop_graph(self):
         with self._conn.cursor() as cur:

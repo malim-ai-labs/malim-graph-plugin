@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 from datetime import datetime, timezone
-from typing import Optional
 
 from malimgraph.core.pdf_reader import DocumentContent
 from malimgraph.schemas.entities import (
@@ -16,7 +15,6 @@ from malimgraph.schemas.entities import (
     KnowledgeGraph,
     Relationship,
 )
-from malimgraph.utils.hashing import entity_id
 
 
 def build_knowledge_graph(
@@ -88,8 +86,16 @@ def _merge_entities(rule_entities: list[Entity], llm_entities: list[Entity]) -> 
             all_chunk_ids = list(set(rule_entity.source_chunk_ids + llm_entity.source_chunk_ids))
 
             # Rule-extracted types override LLM for structured data types
-            structured_types = {"Date", "MonetaryAmount", "Percentage", "Email", "URL",
-                                "PhoneNumber", "IdentificationNumber", "CompanyRegistration"}
+            structured_types = {
+                "Date",
+                "MonetaryAmount",
+                "Percentage",
+                "Email",
+                "URL",
+                "PhoneNumber",
+                "IdentificationNumber",
+                "CompanyRegistration",
+            }
             if rule_entity.type in structured_types:
                 winning_type = rule_entity.type
             else:
@@ -152,6 +158,5 @@ def _build_chunk_index(
                 chunk_pages.setdefault(cid, set()).update(citation.pages)
 
     return {
-        cid: ChunkIndex(chunk_id=cid, pages=sorted(pages))
-        for cid, pages in chunk_pages.items()
+        cid: ChunkIndex(chunk_id=cid, pages=sorted(pages)) for cid, pages in chunk_pages.items()
     }

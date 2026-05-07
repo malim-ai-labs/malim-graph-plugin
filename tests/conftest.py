@@ -1,9 +1,16 @@
 """Shared fixtures for MalimGraph tests."""
-import json
+
 from pathlib import Path
 
 import pytest
 
+from malimgraph.schemas.chunks import (
+    Chunk,
+    ChunkCollection,
+    ChunkMetadata,
+    ChunkPosition,
+    CollectionMetadata,
+)
 from malimgraph.schemas.entities import (
     Citation,
     Confidence,
@@ -13,8 +20,6 @@ from malimgraph.schemas.entities import (
     KnowledgeGraph,
     Relationship,
 )
-from malimgraph.schemas.chunks import Chunk, ChunkCollection, ChunkMetadata, ChunkPosition, CollectionMetadata
-
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
