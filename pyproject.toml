@@ -1,6 +1,6 @@
 [project]
 name = "malimgraph"
-version = "0.1.0"
+version = "0.1.1"
 description = "Transform PDF documents into structured knowledge graphs with citation provenance"
 readme = "README.md"
 license = "MIT"
