@@ -40,22 +40,26 @@ Transform PDF documents into structured knowledge graphs with full citation prov
 
 ## Quick Start
 
+### Claude Code / Claude Desktop (no API key needed)
+
+```bash
+pip install malimgraph
+claude mcp add malimgraph -- malimgraph-plugin
+```
+
+Restart Claude Code, then just ask:
+> *"Extract a knowledge graph from report.pdf and save to ./output/"*
+
+Claude reads the PDF, extracts entities using its own intelligence, and saves the graph. No `ANTHROPIC_API_KEY` required.
+
+### CLI (standalone, requires API key)
+
 ```bash
 pip install malimgraph
 export ANTHROPIC_API_KEY=sk-ant-...
 
-# Extract knowledge graph
 malimgraph extract --input report.pdf --output ./output/ --format all
-
-# Chunk for RAG
 malimgraph chunk --input report.pdf --output ./chunks/
-
-# Embed chunks into pgvector
-export PGVECTOR_URI="postgresql://user:pass@localhost:5432/mydb"
-export OPENAI_API_KEY=sk-...
-malimgraph vector load --input ./chunks/chunks.json
-
-# Render as browsable HTML
 malimgraph render --input report.pdf --output document.html
 ```
 
@@ -96,32 +100,34 @@ rule_extractor.py              llm_extractor.py          chunker.py
 
 ## Three Ways to Use
 
-### MCP Server
+### Claude Code Plugin (recommended — no API key)
 
 ```bash
-# stdio (for Claude Desktop / Claude Code)
-malimgraph serve
-
-# HTTP (for remote connections / claude.ai)
-malimgraph serve --transport http --port 8080
+claude mcp add malimgraph -- malimgraph-plugin
 ```
 
-**Claude Desktop config** (`claude_desktop_config.json`):
+**Claude Desktop** (`claude_desktop_config.json`):
 ```json
 {
   "mcpServers": {
     "malimgraph": {
-      "command": "malimgraph",
-      "args": ["serve"],
-      "env": { "ANTHROPIC_API_KEY": "sk-ant-..." }
+      "command": "malimgraph-plugin"
     }
   }
 }
 ```
 
-**Claude Code:**
+Claude uses its own subscription to extract entities — no `ANTHROPIC_API_KEY` needed.
+See [docs/claude-code-plugin.md](docs/claude-code-plugin.md) for full details.
+
+### MCP Server (standalone / HTTP)
+
 ```bash
-claude mcp add malimgraph -- malimgraph serve
+# stdio — Claude Desktop / Claude Code (with API key for LLM extraction)
+malimgraph serve
+
+# HTTP — remote connections / claude.ai
+malimgraph serve --transport http --port 8080
 ```
 
 ### CLI

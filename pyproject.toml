@@ -1,6 +1,6 @@
 [project]
 name = "malimgraph"
-version = "0.1.1"
+version = "0.1.2"
 description = "Transform PDF documents into structured knowledge graphs with citation provenance"
 readme = "README.md"
 license = "MIT"
@@ -44,6 +44,7 @@ dev = ["pytest>=8.0", "pytest-asyncio>=0.23", "ruff>=0.5"]
 
 [project.scripts]
 malimgraph = "malimgraph.cli:cli"
+malimgraph-plugin = "malimgraph.plugin:run"
 
 [project.urls]
 Homepage = "https://github.com/AiMalim/malimgraph"
