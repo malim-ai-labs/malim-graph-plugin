@@ -4,7 +4,6 @@ services:
     runtime: python
     buildCommand: pip install -e .
     startCommand: malimgraph-plugin --transport http --port $PORT
-    healthCheckPath: /health
     envVars:
       - key: MALIMGRAPH_TRANSPORT
         value: http

@@ -8,4 +8,4 @@ RUN pip install --no-cache-dir -e .
 
 EXPOSE 8080
 
-CMD malimgraph-plugin --transport http --port ${PORT:-8080}
+CMD ["sh", "-c", "malimgraph-plugin --transport http --port ${PORT:-8080}"]

@@ -570,12 +570,6 @@ async def embed_and_store_chunks(
     }
 
 
-@mcp.resource("health://status")
-async def health() -> str:
-    """Health check endpoint for Railway / Render deployment."""
-    return f"ok — MalimGraph {mcp.version}"
-
-
 @mcp.tool()
 async def list_workflows() -> dict:
     """
