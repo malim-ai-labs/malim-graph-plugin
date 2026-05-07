@@ -21,15 +21,19 @@ from mcp.server.fastmcp import FastMCP
 
 mcp = FastMCP(
     "MalimGraph",
-    version="0.1.1",
+    version="0.1.2",
     instructions=(
         "MalimGraph converts PDF documents into structured knowledge graphs. "
-        "Typical workflow: (1) call read_pdf to get the document text and "
-        "rule-extracted entities, (2) analyze the text yourself to identify "
-        "semantic entities and relationships with verbatim source_text quotes, "
-        "(3) call save_knowledge_graph with your findings. "
-        "Every entity and relationship must include source_text — a verbatim "
-        "quote from the document that proves it exists."
+        "Read CLAUDE.md in the project root for full workflow documentation. "
+        "Core workflow: (1) call read_pdf → get page text + rule entities, "
+        "(2) analyze text yourself → identify entities + relationships with verbatim source_text, "
+        "(3) call save_knowledge_graph → build and save the graph. "
+        "No ANTHROPIC_API_KEY needed — you are the intelligence. "
+        "Trigger phrases: 'knowledge graph' → pdf-to-graph workflow; "
+        "'chunk for RAG' → pdf-to-rag workflow; "
+        "'load into Neo4j' → graph-query workflow; "
+        "'render HTML' → document-html workflow; "
+        "'full pipeline' → all workflows in sequence."
     ),
 )
 
@@ -528,6 +532,65 @@ async def embed_and_store_chunks(
         "embedding_model": config.model,
         "embedding_dimension": config.dimension,
         **result,
+    }
+
+
+@mcp.tool()
+async def list_workflows() -> dict:
+    """
+    List all available MalimGraph workflows, their trigger phrases, and tool sequences.
+    Call this if you are unsure which tools to use for a given task.
+    """
+    return {
+        "plugin": "malimgraph",
+        "version": "0.1.2",
+        "no_api_key_required": True,
+        "install": "pip install malimgraph && claude mcp add malimgraph -- malimgraph-plugin",
+        "workflows": [
+            {
+                "name": "pdf-to-graph",
+                "description": "Extract entities and relationships from a PDF into a knowledge graph.",
+                "triggers": ["knowledge graph", "extract entities", "PDF to graph", "PDF to Cypher", "PDF to Neo4j"],
+                "steps": ["read_pdf", "(you extract entities+relationships)", "save_knowledge_graph"],
+                "outputs": ["knowledge_graph.json", "knowledge_graph.cypher", "knowledge_graph.sql"],
+            },
+            {
+                "name": "pdf-to-rag",
+                "description": "Chunk a PDF and store embeddings in pgvector for semantic search.",
+                "triggers": ["chunk for RAG", "prepare embeddings", "vector search", "pgvector"],
+                "steps": ["chunk_document", "embed_and_store_chunks"],
+                "outputs": ["chunks.json", "pgvector table"],
+                "requires_env": ["PGVECTOR_URI", "OPENAI_API_KEY or VOYAGE_API_KEY"],
+            },
+            {
+                "name": "full-pipeline",
+                "description": "Complete end-to-end PDF processing: graph + chunks + embeddings + HTML.",
+                "triggers": ["full pipeline", "extract and embed", "complete workflow"],
+                "steps": [
+                    "read_pdf",
+                    "(you extract entities+relationships)",
+                    "save_knowledge_graph",
+                    "chunk_document",
+                    "embed_and_store_chunks",
+                    "render_document_html",
+                ],
+                "outputs": ["knowledge_graph.json", ".cypher", ".sql", "chunks.json", "document.html"],
+            },
+            {
+                "name": "graph-query",
+                "description": "Load, query, and manage graphs in Neo4j or Apache AGE.",
+                "triggers": ["load into Neo4j", "Cypher query", "graph database", "graph statistics"],
+                "steps": ["manage_graph_db"],
+                "actions": ["load", "query", "stats", "drop", "list_graphs"],
+            },
+            {
+                "name": "document-html",
+                "description": "Render PDF as structured HTML with page anchors and entity annotations.",
+                "triggers": ["render HTML", "convert PDF to HTML", "browsable document"],
+                "steps": ["render_document_html"],
+                "outputs": ["document.html"],
+            },
+        ],
     }
 
 
