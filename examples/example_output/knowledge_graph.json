@@ -1,0 +1,189 @@
+{
+  "metadata": {
+    "source_file": "sample_report.pdf",
+    "extracted_at": "2025-01-15T10:30:00Z",
+    "total_entities": 5,
+    "total_relationships": 3,
+    "entity_types": ["Date", "MonetaryAmount", "Organization", "Person", "Regulation"],
+    "relationship_types": ["GOVERNED_BY", "LED_BY", "SIGNED_ON"],
+    "extraction_config": {
+      "graph_name": "sample_graph",
+      "total_pages": 5,
+      "document_title": "Sample Annual Report 2024"
+    },
+    "chunk_index": {
+      "llm_p1_p2": {"chunk_id": "llm_p1_p2", "pages": [1, 2]},
+      "llm_p3_p4": {"chunk_id": "llm_p3_p4", "pages": [3, 4]}
+    }
+  },
+  "entities": [
+    {
+      "id": "e_a1b2c3d4",
+      "label": "Malim AI Labs Social Enterprise",
+      "type": "Organization",
+      "properties": {"industry": "Artificial Intelligence", "country": "Malaysia"},
+      "extraction_method": "hybrid",
+      "confidence": "high",
+      "source_pages": [1, 2, 4],
+      "source_text": "Malim AI Labs Social Enterprise (003827047-U) was incorporated under the Companies Act 2016.",
+      "source_chunk_id": "llm_p1_p2",
+      "source_chunk_ids": ["page_1", "llm_p1_p2"],
+      "citations": [
+        {
+          "text": "Malim AI Labs Social Enterprise (003827047-U) was incorporated under the Companies Act 2016.",
+          "pages": [1],
+          "chunk_id": "page_1",
+          "extraction_method": "rule"
+        },
+        {
+          "text": "The company, Malim AI Labs Social Enterprise, focuses on knowledge graph infrastructure.",
+          "pages": [2],
+          "chunk_id": "llm_p1_p2",
+          "extraction_method": "llm"
+        }
+      ]
+    },
+    {
+      "id": "e_b2c3d4e5",
+      "label": "Ahmad Fadzillah",
+      "type": "Person",
+      "properties": {"role": "Chief Executive Officer"},
+      "extraction_method": "llm",
+      "confidence": "high",
+      "source_pages": [1],
+      "source_text": "Ahmad Fadzillah, the Chief Executive Officer, signed the annual report.",
+      "source_chunk_id": "llm_p1_p2",
+      "source_chunk_ids": ["llm_p1_p2"],
+      "citations": [
+        {
+          "text": "Ahmad Fadzillah, the Chief Executive Officer, signed the annual report.",
+          "pages": [1],
+          "chunk_id": "llm_p1_p2",
+          "extraction_method": "llm"
+        }
+      ]
+    },
+    {
+      "id": "e_c3d4e5f6",
+      "label": "Companies Act 2016",
+      "type": "Regulation",
+      "properties": {},
+      "extraction_method": "hybrid",
+      "confidence": "high",
+      "source_pages": [1, 3],
+      "source_text": "...incorporated under the Companies Act 2016...",
+      "source_chunk_id": "page_1",
+      "source_chunk_ids": ["page_1", "llm_p3_p4"],
+      "citations": [
+        {
+          "text": "...incorporated under the Companies Act 2016...",
+          "pages": [1],
+          "chunk_id": "page_1",
+          "extraction_method": "rule"
+        }
+      ]
+    },
+    {
+      "id": "e_d4e5f6a7",
+      "label": "RM 1,250,000",
+      "type": "MonetaryAmount",
+      "properties": {},
+      "extraction_method": "rule",
+      "confidence": "high",
+      "source_pages": [3],
+      "source_text": "...total revenue of RM 1,250,000 for the fiscal year...",
+      "source_chunk_id": "page_3",
+      "source_chunk_ids": ["page_3"],
+      "citations": [
+        {
+          "text": "...total revenue of RM 1,250,000 for the fiscal year...",
+          "pages": [3],
+          "chunk_id": "page_3",
+          "extraction_method": "rule"
+        }
+      ]
+    },
+    {
+      "id": "e_e5f6a7b8",
+      "label": "15 March 2024",
+      "type": "Date",
+      "properties": {},
+      "extraction_method": "rule",
+      "confidence": "high",
+      "source_pages": [1],
+      "source_text": "...signed on 15 March 2024 by the board of directors...",
+      "source_chunk_id": "page_1",
+      "source_chunk_ids": ["page_1"],
+      "citations": [
+        {
+          "text": "...signed on 15 March 2024 by the board of directors...",
+          "pages": [1],
+          "chunk_id": "page_1",
+          "extraction_method": "rule"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "id": "r_1a2b3c4d",
+      "source": "e_a1b2c3d4",
+      "target": "e_c3d4e5f6",
+      "type": "GOVERNED_BY",
+      "properties": {},
+      "extraction_method": "llm",
+      "confidence": "high",
+      "source_pages": [1],
+      "source_text": "Malim AI Labs Social Enterprise (003827047-U) was incorporated under the Companies Act 2016.",
+      "source_chunk_id": "llm_p1_p2",
+      "citations": [
+        {
+          "text": "Malim AI Labs Social Enterprise (003827047-U) was incorporated under the Companies Act 2016.",
+          "pages": [1],
+          "chunk_id": "llm_p1_p2",
+          "extraction_method": "llm"
+        }
+      ]
+    },
+    {
+      "id": "r_2b3c4d5e",
+      "source": "e_a1b2c3d4",
+      "target": "e_b2c3d4e5",
+      "type": "LED_BY",
+      "properties": {},
+      "extraction_method": "llm",
+      "confidence": "high",
+      "source_pages": [1],
+      "source_text": "Ahmad Fadzillah, the Chief Executive Officer, signed the annual report on behalf of Malim AI Labs.",
+      "source_chunk_id": "llm_p1_p2",
+      "citations": [
+        {
+          "text": "Ahmad Fadzillah, the Chief Executive Officer, signed the annual report on behalf of Malim AI Labs.",
+          "pages": [1],
+          "chunk_id": "llm_p1_p2",
+          "extraction_method": "llm"
+        }
+      ]
+    },
+    {
+      "id": "r_3c4d5e6f",
+      "source": "e_b2c3d4e5",
+      "target": "e_e5f6a7b8",
+      "type": "SIGNED_ON",
+      "properties": {},
+      "extraction_method": "llm",
+      "confidence": "high",
+      "source_pages": [1],
+      "source_text": "Ahmad Fadzillah, the Chief Executive Officer, signed the annual report on 15 March 2024.",
+      "source_chunk_id": "llm_p1_p2",
+      "citations": [
+        {
+          "text": "Ahmad Fadzillah signed the document on 15 March 2024.",
+          "pages": [1],
+          "chunk_id": "llm_p1_p2",
+          "extraction_method": "llm"
+        }
+      ]
+    }
+  ]
+}

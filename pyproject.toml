@@ -1,0 +1,59 @@
+[project]
+name = "malimgraph"
+version = "0.1.0"
+description = "Transform PDF documents into structured knowledge graphs with citation provenance"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [
+    {name = "Malim AI Labs", email = "hello@malim.my"},
+]
+keywords = ["knowledge-graph", "pdf", "cypher", "neo4j", "apache-age", "mcp", "nlp", "graphrag"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Database :: Database Engines/Servers",
+]
+dependencies = [
+    "pymupdf>=1.24",
+    "anthropic>=0.40",
+    "click>=8.0",
+    "pydantic>=2.0",
+    "mcp>=1.0",
+]
+
+[project.optional-dependencies]
+neo4j = ["neo4j>=5.0"]
+age = ["psycopg2-binary>=2.9"]
+all = ["neo4j>=5.0", "psycopg2-binary>=2.9"]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.23", "ruff>=0.5"]
+
+[project.scripts]
+malimgraph = "malimgraph.cli:cli"
+
+[project.urls]
+Homepage = "https://github.com/AiMalim/malimgraph"
+Documentation = "https://ailabs.malim.my/malimgraph"
+Repository = "https://github.com/AiMalim/malimgraph"
+Issues = "https://github.com/AiMalim/malimgraph/issues"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/malimgraph"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
