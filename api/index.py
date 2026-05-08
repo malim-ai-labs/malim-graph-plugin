@@ -29,7 +29,7 @@ class AsgiHostRewrite:
             scope["headers"] = headers
         return await self.app(scope, receive, send)
 
-_internal_app = mcp.sse_app()
+_internal_app = mcp.streamable_http_app()
 
 # Add CORS Middleware to allow web clients (like Claude Web) to connect
 _internal_app.add_middleware(
