@@ -1,15 +1,15 @@
 # MalimGraph (v0.2.0)
 
 ```
-███╗   ███╗ █████╗ ██╗     ██╗███╗   ███╗ ██████╗ ██████╗  █████╗ ██████╗ ██╗  ██╗
-████╗ ████║██╔══██╗██║     ██║████╗ ████║██╔════╝ ██╔══██╗██╔══██╗██╔══██╗██║  ██║
-██╔████╔██║███████║██║     ██║██╔████╔██║██║  ███╗██████╔╝███████║██████╔╝███████║
-██║╚██╔╝██║██╔══██║██║     ██║██║╚██╔╝██║██║   ██║██╔══██╗██╔══██║██╔═══╝ ██╔══██║
-██║ ╚═╝ ██║██║  ██║███████╗██║██║ ╚═╝ ██║╚██████╔╝██║  ██║██║  ██║██║     ██║  ██║
-╚═╝     ╚═╝╚═╝  ╚═╝╚══════╝╚═╝╚═╝     ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝  ╚═╝
+ __  __       _ _         ____                 _
+|  \/  | __ _| (_)_ __ _ / ___|_ __ __ _ _ __ | |__
+| |\/| |/ _` | | | '_ ` _ \___ \ '__/ _` | '_ \| '_ \
+| |  | | (_| | | | | | | | |__) | | | (_| | |_) | | | |
+|_|  |_|\__,_|_|_|_| |_| |_|____/|_|  \__,_| .__/|_| |_|
+                                             |_|
 ```
 
-[![PyPI version](https://badge.fury.io/py/malimgraph.svg)](https://badge.fury.io/py/malimgraph)
+[![PyPI version](https://img.shields.io/pypi/v/malimgraph?color=blue&label=pypi)](https://pypi.org/project/malimgraph/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://modelcontextprotocol.io)
