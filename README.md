@@ -69,12 +69,10 @@ python skills/graph-visualizer-sigma/scripts/visualize_sigma.py --input output/k
 
 MalimGraph provides specialized agentic skills. Trigger them via natural language:
 
-| Trigger Phrase | Workflow | Target |
-|----------------|----------|--------|
-| **"knowledge graph"** | `$pdf-to-graph` | JSON/Cypher/SQL export |
-| **"visualise graph"** | `visual-discovery` | Premium vis.js explorer |
-| **"chunk for RAG"** | `$pdf-to-rag` | pgvector/embeddings |
-| **"load into Neo4j"** | `neo4j-local` | Local database instance |
+- **"knowledge graph"** — Full extraction and export
+- **"visualise graph"** — Launch visual explorer
+- **"chunk for RAG"** — Prepare document for vector embeddings
+- **"load into Neo4j"** — Import to local graph database
 
 ---
 
@@ -88,7 +86,7 @@ MalimGraph provides specialized agentic skills. Trigger them via natural languag
 
 ---
 
-## ☁️ Cloud & Vercel
+## ☁️ MCP Server Endpoint
 Deploy MalimGraph as a serverless MCP endpoint on:
 `https://mcpserver.malim.my/mcp` (Streamable HTTP)
 
