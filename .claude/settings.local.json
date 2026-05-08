@@ -13,7 +13,8 @@
       "PowerShell(python --version)",
       "PowerShell(python -m pip install ruff 2>&1)",
       "WebFetch(domain:github.com)",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(python *)"
     ]
   }
 }

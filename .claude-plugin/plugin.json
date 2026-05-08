@@ -15,5 +15,14 @@
       "description": "Core MalimGraph MCP server for extracting knowledge graphs and building RAG pipelines",
       "optional": false
     }
+  },
+  "capabilities": {
+    "commands": [
+      {
+        "name": "kg",
+        "description": "Initialize MalimGraph Knowledge Graph Orchestration",
+        "path": ".claude/commands/kg.md"
+      }
+    ]
   }
 }
