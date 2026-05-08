@@ -40,21 +40,17 @@ HTML_TEMPLATE = """
         
         <hr style="border: 0; border-top: 1px dashed #30363d; margin: 2rem 0;">
         
-        <h2>// INSTALLATION.CLAUDE_CODE()</h2>
-        <p>To connect Claude Code locally to this remote Vercel-hosted MCP endpoint:</p>
+        <h2>// BROWSER INSPECTOR UI</h2>
+        <p>To debug or test this remote MCP server visually in your browser:</p>
         <pre><code class="prompt">npx -y @modelcontextprotocol/inspector https://mcpserver.malim.my/api/sse</code></pre>
 
-        <h2>// INSTALLATION.CLAUDE_DESKTOP()</h2>
-        <p>Append the following to your <code>claude_desktop_config.json</code> using a remote proxy tool if supported, or point it to your Vercel deployment URL using a proxy runner:</p>
+        <h2>// CLAUDE DESKTOP (LOCAL STDIO)</h2>
+        <p>Claude Desktop currently requires establishing a local <code>stdio</code> command process. To run the plugin natively via PyPI, append this to your <code>claude_desktop_config.json</code>:</p>
         <pre><code>{
   "mcpServers": {
-    "malimgraph-remote": {
-      "command": "npx",
-      "args": [
-        "-y", 
-        "@modelcontextprotocol/inspector", 
-        "https://mcpserver.malim.my/api/sse"
-      ]
+    "malimgraph": {
+      "command": "uvx",
+      "args": ["malimgraph", "malimgraph-plugin"]
     }
   }
 }</code></pre>
