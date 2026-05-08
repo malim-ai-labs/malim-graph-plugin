@@ -10,9 +10,11 @@
 ```
 
 [![PyPI version](https://img.shields.io/pypi/v/malimgraph?color=blue&label=pypi)](https://pypi.org/project/malimgraph/)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/malimgraph?color=green&label=downloads%2Fmonth)](https://pypi.org/project/malimgraph/)
+[![Python versions](https://img.shields.io/pypi/pyversions/malimgraph)](https://pypi.org/project/malimgraph/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://modelcontextprotocol.io)
+[![CI](https://github.com/malim-ai-labs/malim-graph-plugin/actions/workflows/ci.yml/badge.svg)](https://github.com/malim-ai-labs/malim-graph-plugin/actions/workflows/ci.yml)
 
 **From documents to interactive knowledge discovery.**
 
