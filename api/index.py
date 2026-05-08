@@ -7,10 +7,19 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..',
 from malimgraph.plugin import mcp
 from starlette.routing import Route
 from starlette.responses import HTMLResponse
+from starlette.middleware.cors import CORSMiddleware
 
 # Expose the ASGI application using the FastMCP SSE application method
 # Vercel's Serverless Python runtime looks for the 'app' variable explicitly.
 app = mcp.sse_app()
+
+# Add CORS Middleware to allow web clients (like Claude Web) to connect
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 HTML_TEMPLATE = """
 <!DOCTYPE html>
