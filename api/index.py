@@ -9,17 +9,37 @@ from starlette.routing import Route
 from starlette.responses import HTMLResponse, JSONResponse
 from starlette.middleware.cors import CORSMiddleware
 
-# Expose the ASGI application using the FastMCP SSE application method
 # Vercel's Serverless Python runtime looks for the 'app' variable explicitly.
-app = mcp.sse_app()
+
+class AsgiHostRewrite:
+    def __init__(self, app):
+        self.app = app
+    async def __call__(self, scope, receive, send):
+        if scope["type"] in ("http", "websocket"):
+            headers = []
+            has_host = False
+            for k, v in scope.get("headers", []):
+                if k.lower() == b"host":
+                    headers.append((b"host", b"localhost"))
+                    has_host = True
+                else:
+                    headers.append((k, v))
+            if not has_host:
+                headers.append((b"host", b"localhost"))
+            scope["headers"] = headers
+        return await self.app(scope, receive, send)
+
+_internal_app = mcp.sse_app()
 
 # Add CORS Middleware to allow web clients (like Claude Web) to connect
-app.add_middleware(
+_internal_app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app = AsgiHostRewrite(_internal_app)
 
 async def health_handler(request):
     return JSONResponse({"status": "online"})
