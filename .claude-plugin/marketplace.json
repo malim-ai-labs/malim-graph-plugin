@@ -1,0 +1,15 @@
+{
+  "name": "malim-ai-labs",
+  "description": "Malim AI Labs official marketplace for agentic plugins and knowledge graph tools",
+  "owner": {
+    "name": "malim-ai-labs",
+    "url": "https://github.com/malim-ai-labs"
+  },
+  "plugins": [
+    {
+      "name": "malim-graph-plugin",
+      "source": ".",
+      "description": "Agentic knowledge graph construction, entity extraction, and RAG pipelines"
+    }
+  ]
+}
