@@ -252,5 +252,5 @@ HTML_TEMPLATE = """
 async def root_handler(request):
     return HTMLResponse(content=HTML_TEMPLATE)
 
-app.routes.append(Route("/", endpoint=root_handler))
-app.routes.append(Route("/health", endpoint=health_handler))
+_internal_app.routes.append(Route("/", endpoint=root_handler))
+_internal_app.routes.append(Route("/health", endpoint=health_handler))
