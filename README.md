@@ -124,7 +124,7 @@ MalimGraph can be natively deployed as a Serverless Application on Vercel over a
 3. Deploy! Vercel will wrap the server into a standard function using `@vercel/python`.
 
 Remote agents and clients can connect to the deployed stream at:
-`https://your-deployment-url.vercel.app/api/index`
+`https://mcpserver.malim.my/api/sse`
 
 ---
 

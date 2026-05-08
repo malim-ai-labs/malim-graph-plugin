@@ -42,7 +42,7 @@ HTML_TEMPLATE = """
         
         <h2>// INSTALLATION.CLAUDE_CODE()</h2>
         <p>To connect Claude Code locally to this remote Vercel-hosted MCP endpoint:</p>
-        <pre><code class="prompt">npx -y @modelcontextprotocol/inspector https://&lt;your-deployment-url&gt;.vercel.app/api/sse</code></pre>
+        <pre><code class="prompt">npx -y @modelcontextprotocol/inspector https://mcpserver.malim.my/api/sse</code></pre>
 
         <h2>// INSTALLATION.CLAUDE_DESKTOP()</h2>
         <p>Append the following to your <code>claude_desktop_config.json</code> using a remote proxy tool if supported, or point it to your Vercel deployment URL using a proxy runner:</p>
@@ -53,7 +53,7 @@ HTML_TEMPLATE = """
       "args": [
         "-y", 
         "@modelcontextprotocol/inspector", 
-        "https://&lt;your-deployment-url&gt;.vercel.app/api/sse"
+        "https://mcpserver.malim.my/api/sse"
       ]
     }
   }
