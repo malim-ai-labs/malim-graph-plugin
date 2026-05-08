@@ -18,9 +18,11 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 
 mcp = FastMCP(
     "MalimGraph",
+    transport_security=TransportSecuritySettings(enable_dns_rebinding_protection=False),
     instructions=(
         "MalimGraph converts PDF documents into structured knowledge graphs. "
         "Read CLAUDE.md in the project root for full workflow documentation. "
