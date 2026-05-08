@@ -87,7 +87,7 @@ MalimGraph provides specialized agentic skills. Trigger them via natural languag
 ---
 
 ## ☁️ Cloud & Vercel
-Deploy MalimGraph as a serverless MCP endpoint on Vercel:
+Deploy MalimGraph as a serverless MCP endpoint on:
 `https://mcpserver.malim.my/mcp` (Streamable HTTP)
 
 ---
