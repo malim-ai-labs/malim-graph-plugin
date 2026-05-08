@@ -6,7 +6,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..',
 
 from malimgraph.plugin import mcp
 from starlette.routing import Route
-from starlette.responses import HTMLResponse
+from starlette.responses import HTMLResponse, JSONResponse
 from starlette.middleware.cors import CORSMiddleware
 
 # Expose the ASGI application using the FastMCP SSE application method
@@ -21,6 +21,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+async def health_handler(request):
+    return JSONResponse({"status": "online"})
+
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="en">
@@ -29,33 +32,141 @@ HTML_TEMPLATE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MalimGraph MCP Status</title>
     <style>
-        body { background-color: #0d1117; color: #c9d1d9; font-family: 'Courier New', Courier, monospace; padding: 2rem; line-height: 1.6; }
-        h1, h2 { color: #58a6ff; font-weight: normal; }
-        .success { color: #3fb950; font-weight: bold; }
-        .container { max-width: 800px; margin: 0 auto; border: 1px solid #30363d; padding: 2rem; border-radius: 6px; background-color: #161b22; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
-        pre { background: #010409; padding: 1rem; border-radius: 4px; overflow-x: auto; color: #e6edf3; border: 1px solid #30363d; font-size: 0.95em; }
-        .prompt::before { content: "$ "; color: #3fb950; font-weight: bold; }
-        .highlight { color: #d2a8ff; }
-        .blink { animation: blinker 1s linear infinite; }
-        @keyframes blinker { 50% { opacity: 0; } }
+        body {
+            background-color: #000000;
+            color: #d0d0d0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            padding: 5rem 2rem;
+            line-height: 1.7;
+            margin: 0;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            -webkit-font-smoothing: antialiased;
+        }
+        h1 {
+            color: #ffffff;
+            font-weight: 500;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+        .description {
+            color: #888888;
+            font-size: 1.05rem;
+            margin-bottom: 3.5rem;
+            max-width: 650px;
+        }
+        .status-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 4rem;
+            padding: 1.5rem 0;
+            border-top: 1px solid #1a1a1a;
+            border-bottom: 1px solid #1a1a1a;
+        }
+        .status-text {
+            font-size: 0.85rem;
+            font-family: 'Courier New', Courier, monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #666;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #444; 
+        }
+        .status-dot.active {
+            background-color: #00ff41;
+            box-shadow: 0 0 8px #00ff41, 0 0 16px #00ff41;
+            animation: pulse-green 2.5s infinite ease-in-out;
+        }
+        .status-dot.offline {
+            background-color: #ff3333;
+            box-shadow: 0 0 8px #ff3333, 0 0 16px #ff3333;
+            animation: pulse-red 2.5s infinite ease-in-out;
+        }
+        @keyframes pulse-green {
+            0% { opacity: 1; box-shadow: 0 0 8px #00ff41; }
+            50% { opacity: 0.4; box-shadow: 0 0 2px #00ff41; }
+            100% { opacity: 1; box-shadow: 0 0 8px #00ff41; }
+        }
+        @keyframes pulse-red {
+            0% { opacity: 1; box-shadow: 0 0 8px #ff3333; }
+            50% { opacity: 0.4; box-shadow: 0 0 2px #ff3333; }
+            100% { opacity: 1; box-shadow: 0 0 8px #ff3333; }
+        }
+        h2 {
+            font-size: 0.95rem;
+            color: #ffffff;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 3.5rem;
+            margin-bottom: 1rem;
+        }
+        p {
+            color: #999999;
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+        pre {
+            background: #080808;
+            padding: 1.25rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            color: #e0e0e0;
+            border: 1px solid #1f1f1f;
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+        .prompt::before {
+            content: "$ ";
+            color: #555;
+        }
+        footer {
+            margin-top: 6rem;
+            padding-top: 2rem;
+            background: transparent;
+            border-top: 1px solid #1a1a1a;
+            font-size: 0.8rem;
+            color: #444;
+            display: flex;
+            justify-content: space-between;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        a {
+            color: #666;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        a:hover {
+            color: #fff;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>&gt; MalimGraph MCP Server <span class="blink">_</span></h1>
-        <p>SYSTEM.STATUS_CHECK()   -> <span class="success">[ONLINE]</span></p>
-        <p>CONNECTION.TRANSPORT()  -> <span class="highlight">HTTP Server-Sent Events (SSE)</span></p>
-        <p>CONNECTION.ENDPOINT()   -> <span class="highlight">/api/sse</span></p>
-        
-        <hr style="border: 0; border-top: 1px dashed #30363d; margin: 2rem 0;">
-        
-        <h2>// BROWSER INSPECTOR UI</h2>
-        <p>To debug or test this remote MCP server visually in your browser:</p>
-        <pre><code class="prompt">npx -y @modelcontextprotocol/inspector https://mcpserver.malim.my/api/sse</code></pre>
+    <h1>MalimGraph Plugin</h1>
+    <div class="description">
+        Advanced agentic knowledge infrastructure pipeline designed to extract, analyze, and orchestrate relationships from unstructured PDFs natively using the Model Context Protocol (MCP).
+    </div>
 
-        <h2>// CLAUDE DESKTOP (LOCAL STDIO)</h2>
-        <p>Claude Desktop currently requires establishing a local <code>stdio</code> command process. To run the plugin natively via PyPI, append this to your <code>claude_desktop_config.json</code>:</p>
-        <pre><code>{
+    <div class="status-wrapper">
+        <div class="status-dot" id="statusIndicator"></div>
+        <div class="status-text" id="statusText">AWAITING BACKEND ...</div>
+    </div>
+
+    <h2>Browser Inspector UI</h2>
+    <p>To debug or test this remote MCP server visually in your browser:</p>
+    <pre><code class="prompt">npx -y @modelcontextprotocol/inspector https://mcpserver.malim.my/api/sse</code></pre>
+
+    <h2>Claude Desktop (Local Stdio)</h2>
+    <p>Claude Desktop officially requires mounting a local <code>stdio</code> command bridge. To natively integrate the plugin locally right now, append this to your <code>claude_desktop_config.json</code>:</p>
+    <pre><code>{
   "mcpServers": {
     "malimgraph": {
       "command": "uvx",
@@ -63,10 +174,48 @@ HTML_TEMPLATE = """
     }
   }
 }</code></pre>
+
+    <footer>
+        <div>&copy; 2026 Malim AI Labs Limited SE. All rights reserved.</div>
+        <div>
+            <a href="https://github.com/malim-ai-labs/malim-graph-plugin" target="_blank">Repository</a> &nbsp; &bull; &nbsp; 
+            <a href="https://ailabs.malim.my" target="_blank">Documentation</a>
+        </div>
+    </footer>
+
+    <script>
+        async function runHealthCheck() {
+            const indicator = document.getElementById('statusIndicator');
+            const text = document.getElementById('statusText');
+            try {
+                // Time-bound fetch request to avoid silent indefinite hangs
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 4000);
+                
+                const response = await fetch('/health', { 
+                    signal: controller.signal,
+                    headers: { 'Cache-Control': 'no-cache' }
+                });
+                clearTimeout(timeoutId);
+                
+                if (response.ok) {
+                    indicator.className = 'status-dot active';
+                    text.innerText = 'MCP BACKEND OPERATIONAL';
+                    text.style.color = '#00ff41'; // match neon green
+                } else {
+                    throw new Error('Server returned non-200 code');
+                }
+            } catch (error) {
+                indicator.className = 'status-dot offline';
+                text.innerText = 'MCP BACKEND UNREACHABLE';
+                text.style.color = '#ff3333'; // match neon red
+            }
+        }
         
-        <hr style="border: 0; border-top: 1px dashed #30363d; margin: 2rem 0;">
-        <p style="font-size: 0.85em; opacity: 0.8; text-align: center;">Powered by Malim AI Labs Agentic Framework</p>
-    </div>
+        // Fire health-check initially and poll every 10 seconds
+        runHealthCheck();
+        setInterval(runHealthCheck, 10000);
+    </script>
 </body>
 </html>
 """
@@ -75,3 +224,4 @@ async def root_handler(request):
     return HTMLResponse(content=HTML_TEMPLATE)
 
 app.routes.append(Route("/", endpoint=root_handler))
+app.routes.append(Route("/health", endpoint=health_handler))
