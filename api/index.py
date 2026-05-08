@@ -50,165 +50,177 @@ HTML_TEMPLATE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MalimGraph MCP Status</title>
+    <title>MalimGraph Plugin</title>
     <style>
         body {
             background-color: #000000;
-            color: #d0d0d0;
+            color: #ffffff;
             font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            padding: 5rem 2rem;
-            line-height: 1.7;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
             margin: 0;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
             -webkit-font-smoothing: antialiased;
         }
-        h1 {
-            color: #ffffff;
+        main {
+            text-align: center;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 2.5rem;
+            object-fit: contain;
+        }
+        .label {
+            color: #555555;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 1rem;
             font-weight: 500;
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-            letter-spacing: -0.02em;
         }
-        .description {
-            color: #888888;
-            font-size: 1.05rem;
-            margin-bottom: 3.5rem;
-            max-width: 650px;
-        }
-        .status-wrapper {
+        .code-container {
+            position: relative;
+            background: #080808;
+            border: 1px solid #1a1a1a;
+            border-radius: 8px;
+            padding: 1.25rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
+            gap: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        .code-container:hover {
+            border-color: #333;
+            background: #111;
+        }
+        code {
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+            font-size: 0.95rem;
+            color: #e0e0e0;
+        }
+        .prompt::before {
+            content: "$ ";
+            color: #444;
+        }
+        .copy-icon {
+            color: #555;
+            transition: color 0.2s ease;
+        }
+        .code-container:hover .copy-icon {
+            color: #fff;
+        }
+        .toast {
+            position: fixed;
+            top: 2.5rem;
+            background: #00ff41;
+            color: #000;
+            padding: 0.6rem 1.2rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        footer {
+            width: 100%;
+            padding: 2.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             gap: 12px;
-            margin-bottom: 4rem;
-            padding: 1.5rem 0;
-            border-top: 1px solid #1a1a1a;
-            border-bottom: 1px solid #1a1a1a;
+            border-top: 1px solid #0f0f0f;
+            background: #000;
         }
         .status-text {
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             font-family: 'Courier New', Courier, monospace;
             text-transform: uppercase;
             letter-spacing: 0.1em;
-            color: #666;
+            color: #444;
+            transition: color 0.3s ease;
         }
         .status-dot {
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
-            background-color: #444; 
+            background-color: #222;
         }
         .status-dot.active {
             background-color: #00ff41;
-            box-shadow: 0 0 8px #00ff41, 0 0 16px #00ff41;
+            box-shadow: 0 0 8px #00ff41;
             animation: pulse-green 2.5s infinite ease-in-out;
         }
         .status-dot.offline {
             background-color: #ff3333;
-            box-shadow: 0 0 8px #ff3333, 0 0 16px #ff3333;
-            animation: pulse-red 2.5s infinite ease-in-out;
+            box-shadow: 0 0 8px #ff3333;
+            animation: pulse-red 2s infinite ease-in-out;
         }
         @keyframes pulse-green {
             0% { opacity: 1; box-shadow: 0 0 8px #00ff41; }
-            50% { opacity: 0.4; box-shadow: 0 0 2px #00ff41; }
+            50% { opacity: 0.3; box-shadow: 0 0 2px #00ff41; }
             100% { opacity: 1; box-shadow: 0 0 8px #00ff41; }
         }
         @keyframes pulse-red {
             0% { opacity: 1; box-shadow: 0 0 8px #ff3333; }
-            50% { opacity: 0.4; box-shadow: 0 0 2px #ff3333; }
+            50% { opacity: 0.3; box-shadow: 0 0 2px #ff3333; }
             100% { opacity: 1; box-shadow: 0 0 8px #ff3333; }
-        }
-        h2 {
-            font-size: 0.95rem;
-            color: #ffffff;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-top: 3.5rem;
-            margin-bottom: 1rem;
-        }
-        p {
-            color: #999999;
-            font-size: 0.95rem;
-            margin-bottom: 1rem;
-        }
-        pre {
-            background: #080808;
-            padding: 1.25rem;
-            border-radius: 4px;
-            overflow-x: auto;
-            color: #e0e0e0;
-            border: 1px solid #1f1f1f;
-            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
-            font-size: 0.85rem;
-            line-height: 1.5;
-        }
-        .prompt::before {
-            content: "$ ";
-            color: #555;
-        }
-        footer {
-            margin-top: 6rem;
-            padding-top: 2rem;
-            background: transparent;
-            border-top: 1px solid #1a1a1a;
-            font-size: 0.8rem;
-            color: #444;
-            display: flex;
-            justify-content: space-between;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-        a {
-            color: #666;
-            text-decoration: none;
-            transition: color 0.2s ease;
-        }
-        a:hover {
-            color: #fff;
         }
     </style>
 </head>
 <body>
-    <h1>MalimGraph Plugin</h1>
-    <div class="description">
-        Advanced agentic knowledge infrastructure pipeline designed to extract, analyze, and orchestrate relationships from unstructured PDFs natively using the Model Context Protocol (MCP).
-    </div>
-
-    <div class="status-wrapper">
-        <div class="status-dot" id="statusIndicator"></div>
-        <div class="status-text" id="statusText">AWAITING BACKEND ...</div>
-    </div>
-
-    <h2>Browser Inspector UI</h2>
-    <p>To debug or test this remote MCP server visually in your browser:</p>
-    <pre><code class="prompt">npx -y @modelcontextprotocol/inspector https://mcpserver.malim.my/api/sse</code></pre>
-
-    <h2>Claude Desktop (Local Stdio)</h2>
-    <p>Claude Desktop officially requires mounting a local <code>stdio</code> command bridge. To natively integrate the plugin locally right now, append this to your <code>claude_desktop_config.json</code>:</p>
-    <pre><code>{
-  "mcpServers": {
-    "malimgraph": {
-      "command": "uvx",
-      "args": ["malimgraph", "malimgraph-plugin"]
-    }
-  }
-}</code></pre>
+    <div id="toast" class="toast">Copied to clipboard</div>
+    
+    <main>
+        <img src="/favicon.ico" alt="MalimGraph Logo" class="logo" onerror="this.style.display='none'">
+        
+        <div class="label">Install Plugin via Claude</div>
+        
+        <div class="code-container" onclick="copyCommand()">
+            <code class="prompt" id="commandText">/plugin marketplace add malim-ai-labs/malim-graph-plugin</code>
+            <svg class="copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+        </div>
+    </main>
 
     <footer>
-        <div>&copy; 2026 Malim AI Labs Limited SE. All rights reserved.</div>
-        <div>
-            <a href="https://github.com/malim-ai-labs/malim-graph-plugin" target="_blank">Repository</a> &nbsp; &bull; &nbsp; 
-            <a href="https://ailabs.malim.my" target="_blank">Documentation</a>
-        </div>
+        <div class="status-dot" id="statusIndicator"></div>
+        <div class="status-text" id="statusText">AWAITING BACKEND</div>
     </footer>
 
     <script>
+        function copyCommand() {
+            const text = document.getElementById('commandText').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const toast = document.getElementById('toast');
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 2000);
+            });
+        }
+
         async function runHealthCheck() {
             const indicator = document.getElementById('statusIndicator');
             const text = document.getElementById('statusText');
             try {
-                // Time-bound fetch request to avoid silent indefinite hangs
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 4000);
                 
@@ -220,19 +232,16 @@ HTML_TEMPLATE = """
                 
                 if (response.ok) {
                     indicator.className = 'status-dot active';
-                    text.innerText = 'MCP BACKEND OPERATIONAL';
-                    text.style.color = '#00ff41'; // match neon green
+                    text.innerText = 'MCP SERVER OPERATIONAL';
                 } else {
-                    throw new Error('Server returned non-200 code');
+                    throw new Error('Server non-200');
                 }
             } catch (error) {
                 indicator.className = 'status-dot offline';
-                text.innerText = 'MCP BACKEND UNREACHABLE';
-                text.style.color = '#ff3333'; // match neon red
+                text.innerText = 'MCP SERVER UNREACHABLE';
             }
         }
         
-        // Fire health-check initially and poll every 10 seconds
         runHealthCheck();
         setInterval(runHealthCheck, 10000);
     </script>
