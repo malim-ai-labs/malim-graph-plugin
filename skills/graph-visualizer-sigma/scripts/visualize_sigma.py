@@ -79,11 +79,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         // 1. Add Nodes
         graphData.entities.forEach((ent, i) => {{
             const type = ent.type || "Other";
-            graph.addNode(ent.label, {{
+            const label = ent.label || ent.name || ent.id || `node_${{i}}`;
+            graph.addNode(ent.id, {{
                 x: Math.random() * 100,
                 y: Math.random() * 100,
                 size: 10,
-                label: ent.label,
+                label: label,
                 color: colorPalette[type] || defaultColor,
                 type: type,
                 confidence: ent.confidence || "medium",
@@ -94,8 +95,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
         // 2. Add Edges
         graphData.relationships.forEach((rel) => {{
-            if (graph.hasNode(rel.source_label) && graph.hasNode(rel.target_label)) {{
-                graph.addEdge(rel.source_label, rel.target_label, {{
+            // Use .source and .target (IDs) as per MalimGraph schema
+            if (graph.hasNode(rel.source) && graph.hasNode(rel.target)) {{
+                graph.addEdge(rel.source, rel.target, {{
                     label: rel.type,
                     size: 1,
                     color: "#334155"
