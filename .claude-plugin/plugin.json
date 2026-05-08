@@ -1,79 +1,19 @@
 {
   "name": "malimgraph",
-  "version": "0.1.2",
-  "description": "Transform PDF documents into structured knowledge graphs with citation provenance. Extract entities, build graphs, chunk for RAG, render HTML, and load into Neo4j or pgvector.",
+  "version": "0.1.6",
+  "description": "Agentic knowledge graph plugin for Claude Code",
   "author": {
-    "name": "Malim AI Labs",
-    "url": "https://ailabs.malim.my"
+    "name": "Malim AI Labs"
   },
-  "homepage": "https://github.com/malim-ai-labs/malim-graph-plugin",
-  "license": "MIT",
-  "keywords": ["knowledge-graph", "pdf", "rag", "neo4j", "pgvector", "mcp", "graphrag", "entity-extraction"],
-  "type": "mcp",
-  "runtime": "python",
-  "entry": "malimgraph-plugin",
-  "install": "pip install malimgraph",
-  "claudeCode": {
-    "addCommand": "claude mcp add malimgraph -- malimgraph-plugin",
-    "removeCommand": "claude mcp remove malimgraph"
+  "engines": {
+    "claudeCode": ">=2.0.0"
   },
-  "tools": [
-    {
-      "name": "read_pdf",
-      "description": "Read PDF, extract text and rule-based entities. First step of any knowledge graph workflow."
-    },
-    {
-      "name": "save_knowledge_graph",
-      "description": "Build and save a knowledge graph from Claude-extracted entities and relationships."
-    },
-    {
-      "name": "chunk_document",
-      "description": "Split PDF into overlapping chunks for RAG / vector embedding pipelines."
-    },
-    {
-      "name": "render_document_html",
-      "description": "Render PDF as structured HTML with page anchors, TOC, entity annotations, and search."
-    },
-    {
-      "name": "manage_graph_db",
-      "description": "Load, query, and manage knowledge graphs in Neo4j or Apache AGE (PostgreSQL)."
-    },
-    {
-      "name": "embed_and_store_chunks",
-      "description": "Generate embeddings for chunks and store in PostgreSQL pgvector for semantic search."
+  "mcpServers": {
+    "malimgraph": {
+      "command": "uvx",
+      "args": ["malimgraph", "malimgraph-plugin"],
+      "description": "Core MalimGraph MCP server for extracting knowledge graphs and building RAG pipelines",
+      "optional": false
     }
-  ],
-  "workflows": [
-    {
-      "name": "full-pipeline",
-      "trigger": ["full pipeline", "extract and embed", "complete knowledge graph"],
-      "steps": ["read_pdf", "save_knowledge_graph", "chunk_document", "embed_and_store_chunks"]
-    },
-    {
-      "name": "knowledge-graph-only",
-      "trigger": ["knowledge graph", "extract entities", "entity extraction", "PDF to graph"],
-      "steps": ["read_pdf", "save_knowledge_graph"]
-    },
-    {
-      "name": "rag-pipeline",
-      "trigger": ["chunk for RAG", "prepare embeddings", "vector search", "semantic search"],
-      "steps": ["chunk_document", "embed_and_store_chunks"]
-    },
-    {
-      "name": "html-render",
-      "trigger": ["render HTML", "browsable document", "convert PDF to HTML"],
-      "steps": ["render_document_html"]
-    },
-    {
-      "name": "graph-db",
-      "trigger": ["load into Neo4j", "load into AGE", "graph database", "Cypher query"],
-      "steps": ["manage_graph_db"]
-    }
-  ],
-  "skills": [
-    "skills/pdf-to-graph/SKILL.md",
-    "skills/pdf-to-rag/SKILL.md",
-    "skills/graph-query/SKILL.md",
-    "skills/document-html/SKILL.md"
-  ]
+  }
 }
