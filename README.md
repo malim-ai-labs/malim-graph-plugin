@@ -100,6 +100,7 @@ Say these phrases to activate built-in workflows:
 | **Claude Desktop** | See config below |
 | **Codex / OpenAI Agents** | See `AGENTS.md` for function schemas |
 | **Any MCP runtime** | `{"command": "malimgraph-plugin"}` |
+| **Vercel (Serverless)** | See *Deploying to Vercel* below |
 
 **Claude Desktop** (`claude_desktop_config.json`):
 ```json
@@ -111,6 +112,19 @@ Say these phrases to activate built-in workflows:
   }
 }
 ```
+
+---
+
+## Deploying to Vercel (HTTP SSE)
+
+MalimGraph can be natively deployed as a Serverless Application on Vercel over an HTTP SSE (Server-Sent Events) endpoint.
+
+1. Clone the repository and connect it to your Vercel dashboard.
+2. Configure your environment variables in the Vercel dashboard (e.g. `PGVECTOR_URI`, `OPENAI_API_KEY`).
+3. Deploy! Vercel will wrap the server into a standard function using `@vercel/python`.
+
+Remote agents and clients can connect to the deployed stream at:
+`https://your-deployment-url.vercel.app/api/index`
 
 ---
 
