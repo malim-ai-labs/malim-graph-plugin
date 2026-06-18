@@ -148,6 +148,55 @@ Input: PDF path, output config
   └── Return: all output paths + stats
 ```
 
+---
+
+### SelfEvolvingOrchestratorAgent
+
+**Purpose:** Autonomous Knowledge Core & Self-Evolving Graph Orchestrator. Maintain, expand, and self-correct a dynamic network of concepts ($G = (V, E)$) on every single API call.
+
+**Trigger phrases:**
+- "orchestrator"
+- "self-evolving graph"
+- "knowledge core"
+- "dynamic network of concepts"
+- "upsert concept / link concept / classify domain"
+
+**System Prompt / Operational Environment:**
+- **[USER_QUERY]:** The semantic question or instruction from the user.
+- **[VECTOR_CONTEXT]:** Closely matched text snippets from a vector database ($pgvector$).
+- **[GRAPH_CONTEXT]:** Local subgraphs, current categories, and neighboring nodes matching the query keywords.
+
+**Decision Tree / Internal Monologue:**
+1. **Analyze Context gaps:** Identify missing connections or edges between concepts mentioned together in `[VECTOR_CONTEXT]` that aren't in `[GRAPH_CONTEXT]`.
+2. **Evaluate Taxonomy:** Introduce new sub-categories or macro-cluster nodes if concepts are becoming too broad.
+3. **Resolve Contradictions:** Update, clarify, or override older properties on existing concept nodes.
+
+**Required tool sequence:** `upsert_node` / `link_concepts` / `classify_domain` (as needed based on context analysis)
+
+---
+
+### BibliographicMetadataAgent
+
+**Purpose:** Extract book bibliographic metadata (ISBN, publisher, author, published date, genre, etc.) for library cataloging in the knowledge graph.
+
+**Trigger phrases:**
+- "prepare bibliographic metadata"
+- "extract book metadata from [file]"
+- "library cataloging for [file]"
+- "extract ISBN, author, publisher from [file]"
+
+**Decision tree:**
+```
+Input: PDF path
+  ├── Call read_pdf(pdf_path)
+  ├── Analyze returned text and rule_extracted_entities (e.g. ISBNs)
+  ├── Extract book bibliographic metadata (Book, Author, Publisher, PublishedDate, Genre, Language, Edition, Description)
+  ├── Call save_knowledge_graph(entities, relationships, output_format="all")
+  └── Return: bibliographic_metadata + summary stats
+```
+
+**Required tool sequence:** `read_pdf` → *(agent extraction)* → `save_knowledge_graph`
+
 ## Tool Schemas (OpenAI Function Calling Format)
 
 ```json
@@ -272,6 +321,52 @@ Input: PDF path, output config
         "skip_existing": {"type": "boolean", "default": true}
       },
       "required": ["chunks_path"]
+    }
+  },
+  {
+    "name": "upsert_node",
+    "description": "Create or update a concept node in the knowledge base. Properties must include a concise, minimalist definition.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "node_id": {"type": "string", "description": "Unique stable identifier for the concept"},
+        "label": {"type": "string", "description": "Canonical human-readable name of the concept"},
+        "category": {"type": "string", "description": "Structural/taxonomic type of the node"},
+        "properties": {
+          "type": "object",
+          "description": "Properties dictionary. MUST include 'definition' or 'description'"
+        },
+        "output_dir": {"type": "string", "default": "./output"}
+      },
+      "required": ["node_id", "label", "category", "properties"]
+    }
+  },
+  {
+    "name": "link_concepts",
+    "description": "Forge a directional edge between two concepts with context justification.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "source_id": {"type": "string", "description": "Source concept node ID"},
+        "target_id": {"type": "string", "description": "Target concept node ID"},
+        "relation_type": {"type": "string", "description": "UPPER_SNAKE_CASE relationship type (e.g. OPTIMIZES, LED_BY)"},
+        "context_justification": {"type": "string", "description": "Explanation/quote justifying the link"},
+        "output_dir": {"type": "string", "default": "./output"}
+      },
+      "required": ["source_id", "target_id", "relation_type", "context_justification"]
+    }
+  },
+  {
+    "name": "classify_domain",
+    "description": "Register a macro-level category or taxonomic class to group dense sub-nodes.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "category_id": {"type": "string", "description": "Unique identifier/name for the category"},
+        "description": {"type": "string", "description": "Description of the category/domain"},
+        "output_dir": {"type": "string", "default": "./output"}
+      },
+      "required": ["category_id", "description"]
     }
   }
 ]
