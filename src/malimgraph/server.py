@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+from datetime import datetime, timezone
 from typing import Optional
 
 from mcp.server.fastmcp import FastMCP
@@ -349,10 +350,10 @@ def _load_or_init_kg(output_dir: str) -> dict:
             "total_entities": 0,
             "total_relationships": 0,
             "entity_types": [],
-            "relationship_types": []
+            "relationship_types": [],
         },
         "entities": [],
-        "relationships": []
+        "relationships": [],
     }
 
 
@@ -360,23 +361,27 @@ def _save_kg(output_dir: str, kg_data: dict):
     kg_path = os.path.join(output_dir, "knowledge_graph.json")
     kg_data["metadata"]["total_entities"] = len(kg_data.get("entities", []))
     kg_data["metadata"]["total_relationships"] = len(kg_data.get("relationships", []))
-    kg_data["metadata"]["entity_types"] = sorted(list({e["type"] for e in kg_data.get("entities", []) if "type" in e}))
-    kg_data["metadata"]["relationship_types"] = sorted(list({r["type"] for r in kg_data.get("relationships", []) if "type" in r}))
+    kg_data["metadata"]["entity_types"] = sorted(
+        list({e["type"] for e in kg_data.get("entities", []) if "type" in e})
+    )
+    kg_data["metadata"]["relationship_types"] = sorted(
+        list({r["type"] for r in kg_data.get("relationships", []) if "type" in r})
+    )
     kg_data["metadata"]["extracted_at"] = datetime.now(timezone.utc).isoformat()
     with open(kg_path, "w", encoding="utf-8") as f:
         json.dump(kg_data, f, indent=2, ensure_ascii=False)
 
 
 def _sync_to_db(kg_data: dict):
-    from malimgraph.schemas.entities import KnowledgeGraph
     from malimgraph.core.db_client import get_client
-    
+    from malimgraph.schemas.entities import KnowledgeGraph
+
     try:
         kg = KnowledgeGraph.model_validate(kg_data)
     except Exception as e:
         print(f"[Orchestrator] Schema validation failed during DB sync: {e}")
         return
-    
+
     neo4j_uri = os.environ.get("NEO4J_URI")
     if neo4j_uri:
         try:
@@ -385,7 +390,7 @@ def _sync_to_db(kg_data: dict):
             client.close()
         except Exception as e:
             print(f"[Orchestrator] Failed to sync to Neo4j: {e}")
-            
+
     age_uri = os.environ.get("AGE_CONNECTION_URI")
     if age_uri:
         try:
@@ -415,16 +420,19 @@ async def upsert_node(
         output_dir: Directory where the knowledge_graph.json is stored.
     """
     if not properties or not (properties.get("definition") or properties.get("description")):
-        return {"status": "error", "message": "Properties must include a concise, minimalist 'definition' or 'description'."}
+        return {
+            "status": "error",
+            "message": "Properties must include a concise, minimalist 'definition' or 'description'.",
+        }
 
     kg_data = _load_or_init_kg(output_dir)
-    
+
     existing_idx = None
     for idx, entity in enumerate(kg_data["entities"]):
         if entity["id"] == node_id:
             existing_idx = idx
             break
-            
+
     new_entity = {
         "id": node_id,
         "label": label,
@@ -434,19 +442,19 @@ async def upsert_node(
         "confidence": "high",
         "source_pages": [1],
         "source_text": properties.get("definition") or properties.get("description") or "",
-        "citations": []
+        "citations": [],
     }
-    
+
     if existing_idx is not None:
         kg_data["entities"][existing_idx] = new_entity
         action = "updated"
     else:
         kg_data["entities"].append(new_entity)
         action = "created"
-        
+
     _save_kg(output_dir, kg_data)
     _sync_to_db(kg_data)
-    
+
     return {"status": "success", "action": action, "node_id": node_id}
 
 
@@ -469,7 +477,7 @@ async def link_concepts(
         output_dir: Directory where the knowledge_graph.json is stored.
     """
     kg_data = _load_or_init_kg(output_dir)
-    
+
     entity_ids = {e["id"] for e in kg_data["entities"]}
     if source_id not in entity_ids:
         stub = {
@@ -481,10 +489,10 @@ async def link_concepts(
             "confidence": "low",
             "source_pages": [],
             "source_text": "",
-            "citations": []
+            "citations": [],
         }
         kg_data["entities"].append(stub)
-        
+
     if target_id not in entity_ids:
         stub = {
             "id": target_id,
@@ -495,19 +503,20 @@ async def link_concepts(
             "confidence": "low",
             "source_pages": [],
             "source_text": "",
-            "citations": []
+            "citations": [],
         }
         kg_data["entities"].append(stub)
 
     from malimgraph.utils.hashing import relationship_id
+
     rid = relationship_id(source_id, relation_type, target_id)
-    
+
     existing_idx = None
     for idx, rel in enumerate(kg_data["relationships"]):
         if rel["id"] == rid:
             existing_idx = idx
             break
-            
+
     new_rel = {
         "id": rid,
         "source": source_id,
@@ -518,19 +527,19 @@ async def link_concepts(
         "confidence": "high",
         "source_pages": [1],
         "source_text": context_justification,
-        "citations": []
+        "citations": [],
     }
-    
+
     if existing_idx is not None:
         kg_data["relationships"][existing_idx] = new_rel
         action = "updated"
     else:
         kg_data["relationships"].append(new_rel)
         action = "created"
-        
+
     _save_kg(output_dir, kg_data)
     _sync_to_db(kg_data)
-    
+
     return {"status": "success", "action": action, "relationship_id": rid}
 
 
@@ -549,15 +558,15 @@ async def classify_domain(
         output_dir: Directory where the knowledge_graph.json is stored.
     """
     kg_data = _load_or_init_kg(output_dir)
-    
+
     node_id = f"cat_{category_id.lower().replace(' ', '_')}"
-    
+
     existing_idx = None
     for idx, entity in enumerate(kg_data["entities"]):
         if entity["id"] == node_id:
             existing_idx = idx
             break
-            
+
     new_entity = {
         "id": node_id,
         "label": category_id,
@@ -567,19 +576,19 @@ async def classify_domain(
         "confidence": "high",
         "source_pages": [1],
         "source_text": description,
-        "citations": []
+        "citations": [],
     }
-    
+
     if existing_idx is not None:
         kg_data["entities"][existing_idx] = new_entity
         action = "updated"
     else:
         kg_data["entities"].append(new_entity)
         action = "created"
-        
+
     _save_kg(output_dir, kg_data)
     _sync_to_db(kg_data)
-    
+
     return {"status": "success", "action": action, "category_id": category_id, "node_id": node_id}
 
 

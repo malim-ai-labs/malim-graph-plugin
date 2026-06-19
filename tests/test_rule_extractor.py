@@ -121,4 +121,3 @@ def test_extracts_isbn():
     isbns = [e.label for e in entities if e.type == "ISBN"]
     assert any("978-3-16-148410-0" in label for label in isbns)
     assert any("0-306-40615-2" in label for label in isbns)
-
