@@ -839,7 +839,7 @@ async def list_workflows() -> dict:
     """
     return {
         "plugin": "malimgraph",
-        "version": "0.2.0",
+        "version": "0.2.1",
         "no_api_key_required": True,
         "install": "pip install malimgraph && claude mcp add malimgraph -- malimgraph-plugin",
         "workflows": [
