@@ -15,7 +15,7 @@ claude mcp add malimgraph -- malimgraph-plugin
 | Tool | Purpose |
 |------|---------|
 | `read_pdf` | Parse PDF → page text + rule entities. Always call first. |
-| `save_knowledge_graph` | Accept your extracted entities/relationships → save .json/.cypher/.sql |
+| `save_knowledge_graph` | Accept your extracted entities/relationships → save .json/.cypher/.sql/OKF bundle |
 | `chunk_document` | Split PDF → overlapping chunks with heading context |
 | `render_document_html` | PDF → structured HTML with page anchors + entity annotations |
 | `manage_graph_db` | Load/query/stats on Neo4j or PostgreSQL AGE |
@@ -29,6 +29,7 @@ Use these phrases to activate specific workflows:
 - **"visualise graph"** / **"discovery map"** → `visual-discovery`
 - **"chunk for RAG"** / **"vector search"** → `$pdf-to-rag`
 - **"load into Neo4j"** → `neo4j-local`
+- **"OKF"** / **"open knowledge format"** / **"markdown knowledge bundle"** → `document-to-okf`
 
 ## Workflows
 
@@ -47,6 +48,21 @@ You MUST:
 6. Report: entities found, relationships found, and the path to the Discovery Map.
 ```
 
+### 2. PDF → Open Knowledge Format (OKF) Bundle
+
+```
+User: "Export report.pdf as OKF" / "convert this document to open knowledge format"
+
+You MUST:
+1. Call read_pdf(pdf_path="report.pdf")
+2. Read ALL page text. Identify entities and relationships with verbatim source_text,
+   same as the core workflow above.
+3. Call save_knowledge_graph(entities, relationships, output_format="okf")
+4. Report the path to output/okf/index.md as the bundle entry point.
+```
+
+See `skills/document-to-okf/SKILL.md` for the bundle structure and frontmatter schema.
+
 ## Entity Extraction Guidelines
 
 **Entity types:**
@@ -61,3 +77,4 @@ You MUST:
 - `output/discovery_map.html` — interactive explorer (vis.js)
 - `output/knowledge_graph.cypher` — Neo4j script
 - `output/knowledge_graph.sql` — Apache AGE script
+- `output/okf/` — Open Knowledge Format bundle (cross-linked Markdown, one file per entity)

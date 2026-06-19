@@ -113,3 +113,11 @@ def test_stable_entity_id():
     assert email1 is not None
     assert email2 is not None
     assert email1.id == email2.id
+
+
+def test_extracts_isbn():
+    doc = _make_doc("The book ISBN-13 is 978-3-16-148410-0 and ISBN-10 is 0-306-40615-2.")
+    entities = extract_by_rules(doc)
+    isbns = [e.label for e in entities if e.type == "ISBN"]
+    assert any("978-3-16-148410-0" in label for label in isbns)
+    assert any("0-306-40615-2" in label for label in isbns)

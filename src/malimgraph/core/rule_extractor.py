@@ -105,6 +105,16 @@ PATTERNS: list[tuple[str, str, re.Pattern]] = [
         "Year",
         re.compile(r"\b(?:19|20)\d{2}\b"),
     ),
+    (
+        "isbn_13",
+        "ISBN",
+        re.compile(r"\b97[89][- ]?\d{1,5}[- ]?\d{1,7}[- ]?\d{1,7}[- ]?\d\b"),
+    ),
+    (
+        "isbn_10",
+        "ISBN",
+        re.compile(r"\b\d{1,5}[- ]?\d{1,7}[- ]?\d{1,7}[- ]?[\dXx]\b"),
+    ),
 ]
 
 
