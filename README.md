@@ -1,4 +1,4 @@
-# MalimGraph (v0.2.0)
+# MalimGraph (v0.2.1)
 
 ```
 ███╗   ███╗ █████╗ ██╗     ██╗███╗   ███╗ ██████╗ ██████╗  █████╗ ██████╗ ██╗  ██╗
@@ -28,7 +28,7 @@ using its own intelligence. No `ANTHROPIC_API_KEY` required.
 
 ## 🚀 Claude Code Integration (Native)
 
-MalimGraph v0.2.0 is a first-class plugin for Claude Code. It features auto-discovery
+MalimGraph v0.2.1 is a first-class plugin for Claude Code. It features auto-discovery
 and a native orchestration command.
 
 ### Installation
